@@ -14,8 +14,6 @@ npm install onela
 
 Create the oodbc.js file in the “common” folder in the project root directory. The reference is as follows:
 
-
-
 ```
 /**
  * OODBC
@@ -26,7 +24,7 @@ Create the oodbc.js file in the “common” folder in the project root director
  * var pool = mysql.createPool(config.get('global.mysql'));
  * 另外需要注意的是，数据库实例化需要在app.js启动的时候预先加载，所以我这里放到一个单独文件进行进行初始化的。
  */
-var dbconn = require("../service/dbconnect");
+var db = require("../service/dbconnect");
 
 /**
  * 数据源配置
@@ -43,16 +41,16 @@ var dataSource = {
          * 大多数情况下，大多数据表放到同一个数据库的情况下
          */
         "DEFAULT": {
-            "READER": dbconn.db,
-            "WRITER": dbconn.db              //读写没有分离的情况，绑定到同一个数据源即可
+            "READER": db.db01,
+            "WRITER": db.db02              //读写没有分离的情况，绑定到同一个数据源即可
         },
         /**
          * 如果存在数据库拆分的实例（多个库组成一套系统的情况）
          * 如果不存在多个数据库的实例，OTHER节点可以删除
          */
         "CENTRAL": {
-            "READER": dbconn.central,           //权限系统,直接使用riskey数据库的central数据表
-            "WRITER": dbconn.central            //权限系统,直接使用riskey数据库的central数据表
+            "READER": db.db10,           //Authority system
+            "WRITER": db.db10            //Authority system
         }
     },
     /**
@@ -97,10 +95,8 @@ var m = {};
 
 /**
  * 初始化OFramework配置文件
- * @param paras.tableName 数据表名称
- * @param cb 回调函数
  * author：zack zou
- * create time：2016-12-08
+ * create time：2017-04-06
  */
 m.initConfigFile = function () {
     /**
@@ -112,6 +108,7 @@ m.initConfigFile = function () {
         /**
          * 根据表字段获取数据表字段名称数据
          * 需要指定配置文件输出路径
+         * onelaInstanceConfig.json文件是可以自定义的
          */
         var config_path = path.resolve('config') + "\\onelaInstanceConfig.json";
         console.log('路径', config_path);
@@ -193,7 +190,7 @@ Here are the sample code for all methods
 /**
  * 实体对象模型
  * author：zack zou
- * create time：2017-07-04-06
+ * create time：2017-04-06
  */
 /**
  * use_cache缓存暂时跳过，业务层 - 缓存层 - 数据层。缓存层做预留，可以自定义实现缓存。
@@ -318,7 +315,7 @@ m.getEntityByIds = function (ids, use_cache) {
      data: [],                  //数据列表
      recordsTotal: 0,           //查询记录总数
      start: 0,                  //当前页索引
-     length: 10                  //页大小
+     length: 10                 //页大小
   }
  * author:zack zou
  * create time:2017-03-29
