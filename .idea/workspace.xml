@@ -18,109 +18,24 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="OFInstance.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="OFInstance.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/OFInstance.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="85" column="56" lean-forward="false" selection-start-line="85" selection-start-column="56" selection-end-line="85" selection-end-column="56" />
-              <folding>
-                <element signature="n#!!block;n#Service#0" expanded="false" />
-                <element signature="n#!!block;n#service#0" expanded="false" />
-                <element signature="e#1417#1879#0" expanded="false" />
-              </folding>
+            <state relative-caret-position="-4769">
+              <caret line="511" column="7" lean-forward="false" selection-start-line="511" selection-start-column="7" selection-end-line="511" selection-end-column="7" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="OFramework.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="OFramework.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/OFramework.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="296">
-              <caret line="470" column="41" lean-forward="false" selection-start-line="470" selection-start-column="32" selection-end-line="470" selection-end-column="41" />
+            <state relative-caret-position="-1501">
+              <caret line="11" column="34" lean-forward="true" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
               <folding>
-                <element signature="n#!!block;n#Service#0" expanded="false" />
-                <element signature="e#7340#7814#0" expanded="false" />
-                <element signature="e#8300#9698#0" expanded="false" />
-                <element signature="e#10202#10682#0" expanded="false" />
-                <element signature="e#10980#11456#0" expanded="false" />
-                <element signature="e#13187#14431#0" expanded="false" />
-                <element signature="e#13580#14319#0" expanded="false" />
-                <element signature="e#14512#15316#0" expanded="false" />
-                <element signature="e#15407#17036#0" expanded="false" />
-                <element signature="e#16190#16846#0" expanded="false" />
-                <element signature="e#17104#17723#0" expanded="false" />
-                <element signature="e#17847#18376#0" expanded="false" />
-                <element signature="e#18472#20952#0" expanded="false" />
-                <element signature="e#41934#42566#0" expanded="false" />
-                <marker date="1493261960844" expanded="true" signature="34452:34754" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="34452:34778" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="34461:34561" ph="/** 执行数据查询，数据库分页查询，queryEntityList底层通用 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="34710:34746" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="34780:34863" ph="/** 新增用户信息 ...*/" />
-                <marker date="1493261960844" expanded="false" signature="34937:37038" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="35007:37014" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="35017:35156" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="35254:35412" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="35279:35373" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-                <marker date="1493261960844" expanded="true" signature="35423:35479" ph="/** 自动创建主键 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="35521:37006" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="35535:35574" ph="/** 主键检测 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="35699:35856" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="35928:36214" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="35946:36007" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="36080:36200" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="36227:36269" ph="/** 参数默认值处理 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="36350:36423" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="36505:36577" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="36660:36717" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="36731:36795" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="36950:36994" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="37040:37123" ph="/** 批量新增数据 ...*/" />
-                <marker date="1493261960844" expanded="false" signature="37196:39574" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="37305:39550" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="37315:37454" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="37552:37726" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="37577:37671" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-                <marker date="1493261960844" expanded="true" signature="37789:37821" ph="/** 遍历结果集 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="37851:39288" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="38035:38102" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="38170:38327" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="38360:38759" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="38437:38745" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="38459:38528" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="38604:38727" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="38772:38814" ph="/** 参数默认值处理 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="38891:38960" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="39038:39106" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="39185:39238" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="39297:39353" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="39505:39541" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="39576:39659" ph="/** 修改实体信息 ...*/" />
-                <marker date="1493261960844" expanded="false" signature="39735:40718" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="39805:40694" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="39815:39921" ph="/** 定义SQL命令参数 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="40019:40333" ph="{&quot;keyword&quot;: paras.keyword...}" />
-                <marker date="1493261960844" expanded="true" signature="40044:40138" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-                <marker date="1493261960844" expanded="true" signature="40152:40189" ph="/** 累加 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="40241:40286" ph="/** 更新的where条件 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="40343:40376" ph="/** 默认参数配置 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="40470:40502" ph="/** 执行sql ...*/" />
-                <marker date="1493261960844" expanded="true" signature="40650:40686" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="40720:40804" ph="/** 聚合函数的应用 ...*/" />
-                <marker date="1493261960844" expanded="false" signature="40886:41747" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="40952:41723" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="40962:40993" ph="/** 条件判断 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="41055:41134" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="41143:41249" ph="/** 定义SQL命令参数 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="41355:41436" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-                <marker date="1493261960844" expanded="true" signature="41447:41525" ph="/** 执行数据查询，数据库分页查询，statsByCount底层通用 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="41679:41715" ph="{...}" />
-                <marker date="1493261960844" expanded="false" signature="41749:41860" ph="/** 物理删除实体信息 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="42000:42542" ph="{...}" />
-                <marker date="1493261960844" expanded="true" signature="42010:42116" ph="/** 定义SQL命令参数 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="42222:42303" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-                <marker date="1493261960844" expanded="true" signature="42314:42348" ph="/** 物理删除，根据 ...*/" />
-                <marker date="1493261960844" expanded="true" signature="42498:42534" ph="{...}" />
+                <element signature="e#18455#19416#0" expanded="false" />
+                <element signature="e#28871#29715#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -139,8 +54,8 @@
       <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="15" column="17" lean-forward="false" selection-start-line="15" selection-start-column="17" selection-end-line="15" selection-end-column="17" />
+            <state relative-caret-position="406">
+              <caret line="41" column="1" lean-forward="true" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -149,7 +64,7 @@
       <file leaf-file-name="oParameters.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/oParameters.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="950">
+            <state relative-caret-position="287">
               <caret line="151" column="18" lean-forward="false" selection-start-line="151" selection-start-column="18" selection-end-line="151" selection-end-column="18" />
               <folding>
                 <element signature="e#1051#1446#0" expanded="false" />
@@ -193,15 +108,15 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/lib/oParameters.js" />
-        <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/template/ws_code.ejs" />
         <option value="$PROJECT_DIR$/template/ws_code.js" />
         <option value="$PROJECT_DIR$/template/control.ejs" />
         <option value="$PROJECT_DIR$/lib/template/web.html" />
         <option value="$PROJECT_DIR$/lib/template/control.js" />
-        <option value="$PROJECT_DIR$/lib/OFramework.js" />
         <option value="$PROJECT_DIR$/lib/template/control.ejs" />
+        <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/lib/OFInstance.js" />
+        <option value="$PROJECT_DIR$/lib/OFramework.js" />
       </list>
     </option>
   </component>
@@ -365,15 +280,15 @@
       <option name="presentableId" value="Default" />
       <updated>1491456251741</updated>
       <workItem from="1491456254878" duration="19349000" />
-      <workItem from="1492493110498" duration="24321000" />
+      <workItem from="1492493110498" duration="27395000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="43670000" />
+    <option name="totallyTimeSpent" value="46744000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18601191" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -412,11 +327,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="874">
           <caret line="84" column="56" lean-forward="false" selection-start-line="84" selection-start-column="56" selection-end-line="84" selection-end-column="56" />
-          <folding>
-            <element signature="n#!!block;n#Service#0" expanded="false" />
-            <element signature="n#!!block;n#service#0" expanded="false" />
-            <element signature="e#1417#1879#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -425,89 +336,8 @@
         <state relative-caret-position="12369">
           <caret line="871" column="24" lean-forward="false" selection-start-line="871" selection-start-column="24" selection-end-line="871" selection-end-column="24" />
           <folding>
-            <element signature="n#!!block;n#Service#0" expanded="false" />
-            <element signature="e#7340#7814#0" expanded="false" />
-            <element signature="e#8300#9698#0" expanded="false" />
-            <element signature="e#10202#10682#0" expanded="false" />
-            <element signature="e#10980#11456#0" expanded="false" />
-            <element signature="e#13187#14431#0" expanded="false" />
-            <element signature="e#13580#14319#0" expanded="false" />
-            <element signature="e#14512#15316#0" expanded="false" />
-            <element signature="e#15407#17036#0" expanded="false" />
-            <element signature="e#16190#16846#0" expanded="false" />
-            <element signature="e#17104#17723#0" expanded="false" />
-            <element signature="e#17847#18376#0" expanded="false" />
-            <element signature="e#18472#20952#0" expanded="false" />
-            <element signature="e#41934#42566#0" expanded="false" />
-            <marker date="1493261960844" expanded="true" signature="34452:34754" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="34452:34778" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="34461:34561" ph="/** 执行数据查询，数据库分页查询，queryEntityList底层通用 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="34710:34746" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="34780:34863" ph="/** 新增用户信息 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="34937:37038" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35007:37014" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35017:35156" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35254:35412" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35279:35373" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="35423:35479" ph="/** 自动创建主键 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35521:37006" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35535:35574" ph="/** 主键检测 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35699:35856" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35928:36214" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35946:36007" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36080:36200" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36227:36269" ph="/** 参数默认值处理 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36350:36423" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36505:36577" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36660:36717" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36731:36795" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36950:36994" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="37040:37123" ph="/** 批量新增数据 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="37196:39574" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37305:39550" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37315:37454" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="37552:37726" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37577:37671" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="37789:37821" ph="/** 遍历结果集 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="37851:39288" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38035:38102" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38170:38327" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38360:38759" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38437:38745" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38459:38528" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38604:38727" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38772:38814" ph="/** 参数默认值处理 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38891:38960" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39038:39106" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39185:39238" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39297:39353" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="39505:39541" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="39576:39659" ph="/** 修改实体信息 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="39735:40718" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39805:40694" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39815:39921" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40019:40333" ph="{&quot;keyword&quot;: paras.keyword...}" />
-            <marker date="1493261960844" expanded="true" signature="40044:40138" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="40152:40189" ph="/** 累加 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40241:40286" ph="/** 更新的where条件 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40343:40376" ph="/** 默认参数配置 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40470:40502" ph="/** 执行sql ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40650:40686" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="40720:40804" ph="/** 聚合函数的应用 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="40886:41747" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="40952:41723" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="40962:40993" ph="/** 条件判断 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41055:41134" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="41143:41249" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41355:41436" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="41447:41525" ph="/** 执行数据查询，数据库分页查询，statsByCount底层通用 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41679:41715" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="41749:41860" ph="/** 物理删除实体信息 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42000:42542" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="42010:42116" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42222:42303" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="42314:42348" ph="/** 物理删除，根据 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42498:42534" ph="{...}" />
+            <element signature="e#18455#19416#0" expanded="false" />
+            <element signature="e#28871#29715#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -544,23 +374,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/oParameters.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="950">
-          <caret line="151" column="18" lean-forward="false" selection-start-line="151" selection-start-column="18" selection-end-line="151" selection-end-column="18" />
-          <folding>
-            <element signature="e#1051#1446#0" expanded="false" />
-            <element signature="e#1452#1504#0" expanded="false" />
-            <element signature="e#1553#4795#0" expanded="false" />
-            <element signature="e#2559#2583#0" expanded="false" />
-            <element signature="e#5193#9860#0" expanded="false" />
-            <element signature="e#5367#6926#0" expanded="false" />
-            <element signature="e#7033#9726#0" expanded="false" />
-            <element signature="e#10211#12904#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/template/ws_code.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="380">
@@ -593,14 +406,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="15" column="17" lean-forward="false" selection-start-line="15" selection-start-column="17" selection-end-line="15" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/template/control.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4199">
@@ -617,106 +422,46 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/OFramework.js">
+    <entry file="file://$PROJECT_DIR$/lib/oParameters.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="296">
-          <caret line="470" column="41" lean-forward="false" selection-start-line="470" selection-start-column="32" selection-end-line="470" selection-end-column="41" />
+        <state relative-caret-position="287">
+          <caret line="151" column="18" lean-forward="false" selection-start-line="151" selection-start-column="18" selection-end-line="151" selection-end-column="18" />
           <folding>
-            <element signature="n#!!block;n#Service#0" expanded="false" />
-            <element signature="e#7340#7814#0" expanded="false" />
-            <element signature="e#8300#9698#0" expanded="false" />
-            <element signature="e#10202#10682#0" expanded="false" />
-            <element signature="e#10980#11456#0" expanded="false" />
-            <element signature="e#13187#14431#0" expanded="false" />
-            <element signature="e#13580#14319#0" expanded="false" />
-            <element signature="e#14512#15316#0" expanded="false" />
-            <element signature="e#15407#17036#0" expanded="false" />
-            <element signature="e#16190#16846#0" expanded="false" />
-            <element signature="e#17104#17723#0" expanded="false" />
-            <element signature="e#17847#18376#0" expanded="false" />
-            <element signature="e#18472#20952#0" expanded="false" />
-            <element signature="e#41934#42566#0" expanded="false" />
-            <marker date="1493261960844" expanded="true" signature="34452:34754" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="34452:34778" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="34461:34561" ph="/** 执行数据查询，数据库分页查询，queryEntityList底层通用 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="34710:34746" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="34780:34863" ph="/** 新增用户信息 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="34937:37038" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35007:37014" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35017:35156" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35254:35412" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35279:35373" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="35423:35479" ph="/** 自动创建主键 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35521:37006" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35535:35574" ph="/** 主键检测 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35699:35856" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="35928:36214" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="35946:36007" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36080:36200" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36227:36269" ph="/** 参数默认值处理 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36350:36423" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36505:36577" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36660:36717" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="36731:36795" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="36950:36994" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="37040:37123" ph="/** 批量新增数据 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="37196:39574" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37305:39550" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37315:37454" ph="/** ：：以下代码重用时不需要更改，特殊情况除外 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="37552:37726" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="37577:37671" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="37789:37821" ph="/** 遍历结果集 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="37851:39288" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38035:38102" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38170:38327" ph="/** 参数封装：insert表字段从字段配置表中遍历 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38360:38759" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38437:38745" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38459:38528" ph="/** 字段多少、字段的排序，以配置结构为准 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38604:38727" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="38772:38814" ph="/** 参数默认值处理 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="38891:38960" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39038:39106" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39185:39238" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39297:39353" ph="/** 执行SQL，底层方法通用，配置好了参数集合列表底层自动完成 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="39505:39541" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="39576:39659" ph="/** 修改实体信息 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="39735:40718" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39805:40694" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="39815:39921" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40019:40333" ph="{&quot;keyword&quot;: paras.keyword...}" />
-            <marker date="1493261960844" expanded="true" signature="40044:40138" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="40152:40189" ph="/** 累加 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40241:40286" ph="/** 更新的where条件 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40343:40376" ph="/** 默认参数配置 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40470:40502" ph="/** 执行sql ...*/" />
-            <marker date="1493261960844" expanded="true" signature="40650:40686" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="40720:40804" ph="/** 聚合函数的应用 ...*/" />
-            <marker date="1493261960844" expanded="false" signature="40886:41747" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="40952:41723" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="40962:40993" ph="/** 条件判断 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41055:41134" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="41143:41249" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41355:41436" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="41447:41525" ph="/** 执行数据查询，数据库分页查询，statsByCount底层通用 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="41679:41715" ph="{...}" />
-            <marker date="1493261960844" expanded="false" signature="41749:41860" ph="/** 物理删除实体信息 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42000:42542" ph="{...}" />
-            <marker date="1493261960844" expanded="true" signature="42010:42116" ph="/** 定义SQL命令参数 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42222:42303" ph="{&quot;tableName&quot;: instanceConfig.tableName...}" />
-            <marker date="1493261960844" expanded="true" signature="42314:42348" ph="/** 物理删除，根据 ...*/" />
-            <marker date="1493261960844" expanded="true" signature="42498:42534" ph="{...}" />
+            <element signature="e#1051#1446#0" expanded="false" />
+            <element signature="e#1452#1504#0" expanded="false" />
+            <element signature="e#1553#4795#0" expanded="false" />
+            <element signature="e#2559#2583#0" expanded="false" />
+            <element signature="e#5193#9860#0" expanded="false" />
+            <element signature="e#5367#6926#0" expanded="false" />
+            <element signature="e#7033#9726#0" expanded="false" />
+            <element signature="e#10211#12904#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="406">
+          <caret line="41" column="1" lean-forward="true" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/OFInstance.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="85" column="56" lean-forward="false" selection-start-line="85" selection-start-column="56" selection-end-line="85" selection-end-column="56" />
+        <state relative-caret-position="-4769">
+          <caret line="511" column="7" lean-forward="false" selection-start-line="511" selection-start-column="7" selection-end-line="511" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/OFramework.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1501">
+          <caret line="11" column="34" lean-forward="true" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
           <folding>
-            <element signature="n#!!block;n#Service#0" expanded="false" />
-            <element signature="n#!!block;n#service#0" expanded="false" />
-            <element signature="e#1417#1879#0" expanded="false" />
+            <element signature="e#18455#19416#0" expanded="false" />
+            <element signature="e#28871#29715#0" expanded="false" />
           </folding>
         </state>
       </provider>
