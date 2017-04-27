@@ -99,10 +99,8 @@ var m = {};
  * create time：2017-04-06
  */
 m.initConfigFile = function () {
-    /**
-     * 参数
-     */
-    var promise = new Promise(function (resolve, reject) {
+    //
+    return new Promise(function (resolve, reject) {
         //实例初始化
         var db_instance = onela.tools(oodbc, {});
         /**
@@ -112,13 +110,14 @@ m.initConfigFile = function () {
          */
         var config_path = path.resolve('config') + "\\onelaInstanceConfig.json";
         console.log('路径', config_path);
-        db_instance.initConfigFile({}, config_path).then(function (err, result) {
-            resolve(result);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.initConfigFile({}, config_path)
+        	.then(function (err, result) {
+            	resolve(result);
+        	})
+        	.catch(function (err) {
+                reject(err);
+            });
     });
-    return promise;
 }
 
 module.exports = exports = m;
@@ -190,29 +189,21 @@ Here are the sample code for all methods
 /**
  * 实体对象模型
  * author：zack zou
- * create time：2017-04-06
+ * create time：2017-07-03-29
  */
+
 /**
- * use_cache缓存暂时跳过，业务层 - 缓存层 - 数据层。缓存层做预留，可以自定义实现缓存。
- * 分布式缓存技术，缓存时间长短，数据容量都是需要考虑的。动态条件查询，数据怎么缓存？例如查询条件直接访问db，输出id数组，根据id数组从缓存中取值（可能只有一部分数据在缓存中）
- * 缓存层暂时不封装在onela架构里面
- */
-/**
- * Onela Framework 实例化实体对象
+ * OFramework 实例化实体对象
  */
 var onela = require('onela');
 //数据源
 var oodbc = require('../../common/oodbc');
-/**
- * 配置文件
- * 这个文件就是初始化出来的文件，文件名称和路径可以自定义
- */
+//配置文件
 var onelaInstanceConfig = require("../../config/onelaInstanceConfig.json");
 /**
  * 初始化实例对象，这里需要手写指向配置
- * 初始化instance对象须指定是哪个数据表实体对象
  */
-var db_instance = onela(oodbc, onelaInstanceConfig.tables.yzb_welfare);
+var db_instance = onela(oodbc, onelaInstanceConfig.tables.com_files);
 
 var m = {};
 
@@ -244,16 +235,18 @@ m.getEntityById = function (id, use_cache) {
                 {"logic": "and", "key": 'id', "operator": "=", "value": id}
             ]
         }
-        db_instance.getEntity(condition).then(function (data) {
-            if (data && data.length > 0)
-                resolve(data[0]);
-            else {
-                //Not find
-                resolve(null);
-            }
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntity(condition)
+            .then(function (data) {
+                if (data && data.length > 0)
+                    resolve(data[0]);
+                else {
+                    //Not find
+                    resolve(null);
+                }
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -282,16 +275,18 @@ m.getEntityByIds = function (ids, use_cache) {
                 {"logic": "and", "key": 'id', "operator": "in", "value": ids}
             ]
         }
-        db_instance.getEntity(condition).then(function (data) {
-            if (data && data.length > 0)
-                resolve(data[0]);
-            else {
-                //Not find
-                resolve(null);
-            }
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntity(condition)
+            .then(function (data) {
+                if (data && data.length > 0)
+                    resolve(data[0]);
+                else {
+                    //Not find
+                    resolve(null);
+                }
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -315,7 +310,7 @@ m.getEntityByIds = function (ids, use_cache) {
      data: [],                  //数据列表
      recordsTotal: 0,           //查询记录总数
      start: 0,                  //当前页索引
-     length: 10                 //页大小
+     length: 10                  //页大小
   }
  * author:zack zou
  * create time:2017-03-29
@@ -326,11 +321,13 @@ m.getEntityList = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.getEntityList(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntityList(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -366,11 +363,13 @@ m.getEntityListByWaterfall = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.getEntityListByWaterfall(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntityListByWaterfall(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -398,11 +397,13 @@ m.getEntity = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.getEntity(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntity(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -427,11 +428,13 @@ m.insertEntity = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.insertEntity(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.insertEntity(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -456,11 +459,13 @@ m.insertBatch = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.insertBatch(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.insertBatch(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
 
     });
     return promise;
@@ -494,11 +499,13 @@ m.updateBySenior = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.updateBySenior(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.updateBySenior(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -528,11 +535,13 @@ m.updateBatchBySenior = function (paras, use_cache) {
          * 数据缓存暂时做方案预留
          * 批量更新，这个方式是采用遍历数据单条记录更新的方式（不合适大批量的数据更新）
          */
-        db_instance.updateBatchBySenior(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.updateBatchBySenior(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -560,11 +569,13 @@ m.getEntityByAggregate = function (paras, use_cache) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.getEntityByAggregate(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.getEntityByAggregate(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
@@ -588,19 +599,244 @@ m.deleteEntity = function (paras) {
         /**
          * 数据缓存暂时做方案预留
          */
-        db_instance.deleteEntity(paras).then(function (data) {
-            resolve(data);
-        }, function (err) {
-            reject(err);
-        });
+        db_instance.deleteEntity(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (err) {
+                reject(err);
+            });
     });
     return promise;
 }
 
 module.exports = exports = m;
-
 ```
 
 
 
 Ok, you can now play happily~
+
+
+
+### Use instance to show
+
+#### Query example
+
+There are several ways to apply the query to different business scenarios. Paging query, waterfall flow inquiries, Standard query
+
+~~~~~~
+	//parameter
+    var p = {
+        "select": ["t.id"],     //Specify the output field, query all fields, use t. * Or select attributes by default
+        "keyword": [
+            {"logic": "and", "key": 'valid', "operator": "=", "value": 1},
+            {"logic": "and", "key": 'id', "operator": "=", "value": id}
+        ],
+        "orderBy": {"created_time": "DESC"},
+        "limit": [0, 1]         //Take the first data of the query results
+    }
+    //execute select
+    db_instance.getEntity(p)
+        .then(function (data) {
+            resolve(data);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
+~~~~~~
+
+
+
+#### Insert example
+
+There is also a new batch method db_instance.insertBatch(arr),The incoming value is an array of objects
+
+~~~~~~
+	//parameter
+    var p = {
+        "name":"Sandy",
+        "sex":"female",
+        "email":"sandy@xxx.com"
+        //……
+        //Other fields are added in turn
+    }
+    //execute insert
+    db_instance.insertEntity(p)
+        .then(function (data) {
+            resolve(data);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
+~~~~~~
+
+
+
+#### Update example
+
+There are two main ways to update the field,replace or plus
+
+~~~~~~
+ //parameter
+ var p = {
+     "update": [
+         //operator：replace update
+         {"key": "name", "value": 'Sandy', "operator": "replace"},
+         //operator：plus update,The field type needs to be a numeric type
+         {"key": "money", "value": 2, "operator": "plus"},
+         //operator：reduce update,The field type needs to be a numeric type
+         {"key": "score", "value": 1, "operator": "reduce"}
+         
+     ],
+     "keyword": [
+        //where条件：一般以主键id作为更新条件，支持多条件组合语
+        {"logic": "and","key": "id",  "operator": "=", "value": 'abc'}
+     ]
+ }
+ //execute update
+  db_instance.updateBySenior(p)
+        .then(function (data) {
+            resolve(data);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
+~~~~~~
+
+
+
+#### Delete example
+
+Physical deletion, generally do not recommend this operation, it is recommended to delete the logic
+
+~~~~~~
+
+	//parameter
+    var p = {
+        "keyword": [
+            //Allow multiple query conditions
+            //{"key": "字段名1", "value": "值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: =)"},
+            {"key": "id", "value": "abc", "logic": "and", operator: "="}
+        ]
+    }
+    //execute delete
+    db_instance.deleteEntity(p)
+        .then(function (data) {
+            resolve(data);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
+~~~~~~
+
+
+
+
+
+#### Transaction example
+
+Can only achieve local Transaction 
+
+~~~~~~
+/**
+ * 新增附件关联信息（单文件关联）
+ * 基于node.js事务（mysql）事务执行的案例，基于onela架构实现
+ * @param 参数结构如下
+ * {
+ *   "record_id":"",            //关联记录id
+ *   "files_id":"",             //附件id
+ *   "sign":"业务标识",         //业务标识
+ *    "oper_code":""            //操作代码
+ * }
+ * author:zack zou
+ * create time:2017-04-27
+ */
+m.addFileRelation = function (paras) {
+    //业务执行
+    return new Promise(function (resolve, reject) {
+        /**
+         * 数据源对象，从数据库实例对象中获取，oodbc是标准数据源配置文件
+         * oodbc结构里面是允许配置不同种类的数据（Mysql、Oracle等），同时允许数据库的多实例垂直拆分（解决高IO问题）
+         * 所以onela在执行本地事务是有限制的，注意onela执行本地事务只能同一个实例连接池里面执行，对于已经垂直拆分数据库多实例的情况在这个方案中无法实施
+         * 下面的事务在同一个数据库实例的例子。
+         */
+        var db = oodbc.MYSQL.DEFAULT.WRITER;            //假如读写分离的情况，直接使用读写库的实例
+        /**
+         * 验证事务处理
+         * 本地事务，必须保证操作对象在同一个数据服务实例里面，否则不能实现事务
+         * 创建事务连接对象
+         */
+        db.getConnection(function (err, connection) {
+            if (err) {
+                throw err;
+            }
+            //需要执行事务的实例必须保证在同一个connection池里面，所以必须重新新建oodbc
+            var proc_oodb = {
+                "MYSQL": {
+                    "DEFAULT": {
+                        "READER": connection,   //本地事务必须在同一个数据实例中执行
+                        "WRITER": connection    //本地事务必须在同一个数据实例中执行
+                    }
+                }
+            }
+            //数据库对象实例化
+            var proc_com_files_rel = onela(proc_oodb, onelaInstanceConfig.tables.com_files_rel);
+            var proc_com_files = onela(proc_oodb, onelaInstanceConfig.tables.com_files);
+            console.log('开始执行事务');
+            //开始事务：必须在同一个连接池中执行事务才会生效
+            connection.beginTransaction(function (err) {
+                if (err) {
+                    throw err;
+                }
+                //先新增附件关联，然后再更新附件状态
+                //insert数据库字段默认值处理
+                paras.remark = "";
+                paras.created_id = "";
+                paras.update_id = "";
+                //先新增附件关联信息
+                proc_com_files_rel.insertEntity(paras, false)
+                    .then(function (data) {
+                        /**
+                         * 新增附件关联信息成功，修改附件的使用状态
+                         */
+                        var p = {
+                            "update": [
+                                {"key": "status", "value": "use", "operator": "replace"}
+                            ],
+                            "keyword": [
+                                {"logic": "and", "key": "id", operator: "=", "value": paras.files_id}
+                            ]
+                        };
+                        return proc_com_files.updateBySenior(p, false);
+                    })
+                    .then(function (data) {
+                        // 提交事务
+                        connection.commit(function (err) {
+                            if (err) {
+                                //提交事务异常，执行事务回滚
+                                console.log('提交事务异常，执行事务回滚', err);
+                                connection.rollback(function () {
+                                    reject(err);
+                                });
+                            }
+                            else {
+                                console.log('success!');
+                                resolve("附件关联更新成功");
+                            }
+                        });
+                    })
+                    .catch(function (err) {
+                        //出现异常，事务回滚
+                        console.log('出现异常，执行事务回滚', err);
+                        connection.rollback(function (err) {
+                            console.log('事务错误', err);
+                            reject("执行事务提交出错");
+                        });
+                    });
+            });
+        });
+    });
+};
+~~~~~~
+
