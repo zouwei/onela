@@ -125,7 +125,7 @@ module.exports = exports = m;
 
 
 
-**onelaInstanceConfig.json**
+### onelaInstanceConfig.json  configuration file structure
 
 You can configure it manually，If it is distributed data deployment, need to control odbc.js configuration.
 
@@ -152,24 +152,32 @@ You can configure it manually，If it is distributed data deployment, need to co
     }
   },
   "proc": {
-    "usp_citys_info_update": {
+   "usp_user_info_getUserInfoList": {
       "database": "MYSQL",
       "instance": "DEFAULT",
-      "procedureName": "usp_citys_info_update",
+      "proc_name": "usp_user_info_getUserInfoList",
       "parameter": [
         {
-          "name": "_reporttime",
-          "mandatory": false,
-          "type": "datetime(3)",
-          "notes": "weather更新时间"
-        }
-      ],
-      "outs": [
+          "type": "in",
+          "name": "_start",
+          "mandatory": true,
+          "dataType": "INT(10)",
+          "notes": "数据分页开始位置"
+        },
         {
-          "name": "_result",
+          "type": "in",
+          "name": "_length",
           "mandatory": false,
-          "type": "VARCHAR(30)",
-          "notes": "结果输出"
+          "defaultValue": 5,
+          "dataType": "INT(10)",
+          "notes": "数据分页每页取值的记录数"
+        },
+        {
+          "type": "out",
+          "name": "_totalCount",
+          "mandatory": false,
+          "dataType": "INT(10)",
+          "notes": "记录总数"
         }
       ]
     }
@@ -839,4 +847,45 @@ m.addFileRelation = function (paras) {
     });
 };
 ~~~~~~
+
+
+
+#### stored  procedure example
+
+Onela An example of executing a stored procedure
+
+~~~~~~
+/**
+ * 初始化实例对象，存储过程列表
+ * new 一次和new多次对高并发是有很大影响的，这里采用new一次的做法
+ */
+var proc_instance = {
+    "usp_user_info_getUserInfoList": onela.proc(oodbc, onelaInstanceConfig.proc.usp_user_info_getUserInfoList)
+}
+
+/**
+ * 存储过程方式：分页查询用户数据
+ * @param paras
+ * {
+ *      "_start":0,
+ *      "_length":10
+ * }
+ */
+m.procGetUserInfoList = function (paras) {
+    return new Promise(function (resolve, reject) {
+        //执行存储过程
+        proc_instance.usp_user_info_getUserInfoList.call(paras)
+            .then(function (data) {
+                resolve(data);
+            })
+            .catch(function (ex) {
+                reject(ex);
+            });
+    });
+}
+~~~~~~
+
+
+
+
 
