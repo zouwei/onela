@@ -887,5 +887,39 @@ m.procGetUserInfoList = function (paras) {
 
 
 
+### Version update log
+
+#### v1.2.0 (2017-05-27 update)： Increase the bulk update
+
+v1.2.0 (2017-05-27 更新)：增加批量更新的方式
+
+Added updateBySenior () to update the new features of the condition, support the update of the "case when then"
+
+增加updateBySenior()更新条件的新特性，支持字段的"case when then" 的更新方式
+
+~~~~~~
+var p = {
+     "update": [
+         //operator：replace update（替换更新）
+         {"key": "name", "value": 'Sandy', "operator": "replace"},
+         //Field batch update（字段批量更新）
+         {
+            "key": "balance",		 //update field
+            "case_field": "id",		 //balance =  CASE id 
+            "case_item": [
+            	{"case_value": "001", "value": 1, "operator": "replace"},		//WHEN '001' THEN 1
+            	{"case_value": "002", "value": 2, "operator": "replace"}		//WHEN '001' THEN balance+2
+            ]
+        }
+     ],
+     "keyword": [
+        //where条件：一般以主键id作为更新条件，支持多条件组合语
+        {"logic": "and","key": "id",  "operator": "=", "value": 'abc'}
+     ]
+ }
+~~~~~~
+
+
+
 
 
