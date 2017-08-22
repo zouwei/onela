@@ -921,5 +921,7 @@ var p = {
 
 
 
+#### v1.2.1 (2017-08-22 update)： insert data defect repair
 
+v1.2.1 (2017-08-22 更新)：修复新增默认字段的bug修复
 
