@@ -1,16 +1,18 @@
-# Onela is an open source object-relational mapping framework
+# Onela is an open source object-relational mapping framework（Onela是一个开源对象关系映射框架）
 
 > Onela is an object-based mapping framework based on node.js open source, supporting a variety of relational database data infrastructure. At the same time support a variety of database object read and write separation, the database instance vertical split. On top of the onela architecture you can experience the fun of programming without SQL, and you only need to focus on the business logic code section. And, I will be in the later version of the support to join the distributed cache to achieve the front and back end with node.js program to challenge the case of large-scale applications.
+>
+> Onela是基于node.js开源的基于对象的映射框架，支持各种关系数据库数据基础设施。 同时支持各种数据库对象的读写分离，数据库实例垂直拆分。 在onela架构之上，您可以体验无SQL编程的乐趣，您只需要关注业务逻辑代码部分。 而且，我将在后面的版本的支持下加入分布式缓存来实现前端和后端的node.js程序来挑战大规模应用的情况。
 
 
 
-### step 1 npm install node_modules
+### step 1 npm install node_modules（第一步：安装node模块）
 
 npm install onela
 
 
 
-### step 2 Mapping data sources
+### step 2 Mapping data sources（第二步：配置数据源）
 
 Create the oodbc.js file in the “common” folder in the project root directory. The reference is as follows:
 
@@ -70,7 +72,7 @@ module.exports = dataSource;
 
 
 
-### step 3 Initialize the object relationship configuration file 
+### step 3 Initialize the object relationship configuration file（第三步：初始化对象关系配置文件） 
 
 Automatically initialize the object relationship configuration file, of course, you can also add it manually.
 
@@ -89,43 +91,85 @@ var path = require("path");
  */
 var onela = require('onela');
 //数据源
-var oodbc = require('../common/oodbc');
+var oodbc = require('../core/oodbc');
+//onela-tools，项目已经开源：（下载地址：https://github.com/zouwei/onela-tools）
+let onelaTools = require('./onela-tools.js');
 
 var m = {};
 
 /**
  * 初始化OFramework配置文件
+ * @param paras.tableName 数据表名称
+ * @param cb 回调函数
  * author：zack zou
- * create time：2017-04-06
+ * create time：2017-04-08
  */
 m.initConfigFile = function () {
-    //
     return new Promise(function (resolve, reject) {
-        //实例初始化
-        var db_instance = onela.tools(oodbc, {});
+        let tools = new onelaTools(oodbc, {
+            "database": "MySQL",
+            "instance": "DEFAULT"
+        });
         /**
          * 根据表字段获取数据表字段名称数据
          * 需要指定配置文件输出路径
-         * onelaInstanceConfig.json文件是可以自定义的
          */
-        var config_path = path.resolve('config') + "\\onelaInstanceConfig.json";
-        console.log('路径', config_path);
-        db_instance.initConfigFile({}, config_path)
-        	.then(function (err, result) {
-            	resolve(result);
-        	})
-        	.catch(function (err) {
+        let config_path = path.resolve('config') + "\\onelaInstanceConfig.json";
+        //生成数据对象实例的配置
+        tools.initConfigFile(config_path)
+            .then((result) => {
+                resolve(result);
+            })
+            .catch((err) => {
                 reject(err);
             });
     });
 }
+
+
+/**
+ * 自动化生产Control后台管理方法（常用的增删改查）
+ * @param paras.tableName 数据表名称
+ * author：zack zou
+ * create time：2017-04-18
+ */
+m.initManagementMethodFile = function () {
+    return new Promise(function (resolve, reject) {
+        //实例初始化
+        let tools = new onelaTools(oodbc, {
+            "database": "MySQL",
+            "instance": "DEFAULT"
+        });
+        /**
+         * 根据表字段获取数据表字段名称数据
+         * 需要指定配置文件输出路径
+         */
+        let paras = {
+            "path": "./ws_test/",            //输出文件路径，指向到目录即可，结尾“/”
+            //可选参数，否则会填写默认值
+            "directory": "core",             //数据层输入目录名称
+            "protocol": "http",
+            "host": "localhost:8090",
+            "author": "zack zou"
+        }
+        //工具方法 - 创建后台管理请求Control方法
+        tools.initManagementMethodFile(paras)
+            .then((result) => {
+                resolve(result);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
 
 module.exports = exports = m;
 ```
 
 
 
-### onelaInstanceConfig.json  configuration file structure
+### onelaInstanceConfig.json  configuration file structure（onela-tools工具方法生成的配置文件结构实例如下）
 
 You can configure it manually，If it is distributed data deployment, need to control odbc.js configuration.
 
@@ -187,7 +231,7 @@ You can configure it manually，If it is distributed data deployment, need to co
 
 
 
-### step 4 Method of calling
+### step 4 Method of calling（第四步：方法的调用）
 
 Here are the sample code for all methods
 
@@ -197,428 +241,450 @@ Here are the sample code for all methods
 /**
  * 实体对象模型
  * author：zack zou
- * create time：2017-07-03-29
+ * create time：2017-10-23
  */
 
-/**
- * OFramework 实例化实体对象
- */
-var onela = require('onela');
+//onela ORM框架
+const onela = require('onela');
 //数据源
-var oodbc = require('../../common/oodbc');
+const oodbc = require('../oodbc');
 //配置文件
-var onelaInstanceConfig = require("../../config/onelaInstanceConfig.json");
-/**
- * 初始化实例对象，这里需要手写指向配置
- */
-var db_instance = onela(oodbc, onelaInstanceConfig.tables.com_files);
-
-var m = {};
+const onelaInstanceConfig = require("../../config/onelaInstanceConfig.json");
 
 /**
- * 根据id获取实体对象
- * @param id 主键id
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数 结构
- * {
- *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
- *   keyword:
- *     [
- *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
- *        {"key": "valid", "value": "1"}
- *     ]
- * }
- * 返回：{...}实体对象
- * author:zack zou
- * create time:2017-03-29
+ * onela框架使用实例（此类可以整体复用，采用class的写法，使用时new对象即可）
+ * 实例化基础实例onela基础方法的通用ORM底层方法
+ * 一般情况下不要在基础方法实例里面修改，如需新增方法，请在扩展方法体中进行编写
  */
-m.getEntityById = function (id, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        var condition = {
-            "keyword": [
-                {"logic": "and", "key": 'id', "operator": "=", "value": id}
-            ]
-        }
-        db_instance.getEntity(condition)
-            .then(function (data) {
-                if (data && data.length > 0)
-                    resolve(data[0]);
-                else {
-                    //Not find
-                    resolve(null);
-                }
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
+class base {
+
+    /**
+     * 构造函数
+     */
+    constructor() {
+        //初始化实例对象，根据实例名称指定不同的数据库实例
+        this.db_instance = onela(oodbc, onelaInstanceConfig.tables["entity_name"]);
+
+    }
+
+    /**
+     * 分页查询实体模型信息
+     * @param paras 参数集合，任意参数的组合
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数 结构
+     * {
+     *   start: 开始数据索引
+     *   length: 获取数据行数
+     *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
+     *   keyword:
+     *     [
+     *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
+     *        {"key": "valid", "value": "1"}
+     *     ]
+     * }
+     * 返回:{
+     *        data: [],                  //数据列表
+     *        recordsTotal: 0,           //查询记录总数
+     *        start: 0,                  //当前页索引
+     *        length: 10                  //页大小
+          }
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntityList(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.getEntityList(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 查询瀑布数据列表，不返回记录总数，当返回的isLastPage=true，查询到了末尾
+     * 查询记录length，查询可以length+1，前台数据只显示length的记录，判断尾页，利用length+1判断，小于等于length的记录到了末尾页面
+     * @param paras 关键参数：paras.command、paras.keyword、paras.orderBy
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数 结构
+     * {
+     *   start: 开始数据索引
+     *   length: 获取数据行数
+     *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
+     *   keyword:
+     *     [
+     *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
+     *        {"key": "valid", "value": "1"}
+     *     ]
+     * }
+     * 返回:{
+     *    data: [],                  //数据列表
+     *    isLastPage:false,          //当前页是否为最后页
+     *    start: 0,                  //当前页索引
+     *    length: 10                 //页大小
+     * }
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntityListByWaterfall(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.getEntityListByWaterfall(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 根据动态参数条件查询数据实体对象
+     * @param paras 参数模型
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数 结构
+     * {
+     *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
+     *   keyword:
+     *     [
+     *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
+     *        {"key": "valid", "value": "1"}
+     *     ]
+     * }
+     * 返回:[]
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntity(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.getEntity(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 新增实体模型信息
+     * @param paras 参数
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数 结构
+     * {
+     *      //新增主键id，可缺省，自动赋值，也可以补全id值
+     *      “字段1”:"值"
+     *      “字段1”:"值"
+     *      ...
+     * }
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    insertEntity(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.insertEntity(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 批量新增实体模型数据
+     * @param data 实体列表数组
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数结构
+     * [{
+     *      //新增主键id，可缺省，自动赋值，也可以补全id值
+     *      “字段1”:"值"
+     *      “字段1”:"值"
+     *      ...
+     * }]
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    insertBatch(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.insertBatch(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+
+        });
+    }
+
+    /**
+     * 修改实体信息，可以进行运算的字段的更新（加减）
+     * @param paras 参数（限制字段类型为数字类型）
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数结构
+     *{
+     *    "update": [
+     *        //字段：替换更新
+     *        {"key": "字段1", "value": '值', "operator": "replace"},
+     *        //字段：累加（数值类型）
+     *        {"key": "字段2", "value": 1, "operator": "plus"},
+     *        //字段：累减（数值类型）
+     *        {"key": "字段3", "value": 1, "operator": "reduce"}
+     *    ],
+     *    "keyword": [
+     *       //where条件：一般以主键id作为更新条件，支持多条件组合语句
+     *       {"key": "条件字段1", "value": '值', "logic": "and", "operator": "="}
+     *    ]
+     *}
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    updateBySenior(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.updateBySenior(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 批量更新数据
+     * @param data 实体列表数组
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数结构
+     * {
+     *   "keyword": [
+     *       {"key": "查询条件1", "value": "值", "logic": "and", "operator": "="},
+     *       {"key": "查询条件2", "value": "值", "logic": "and", "operator": "="},
+     *       {"key": "查询条件3", "value": "值", "logic": "and", "operator": "="}
+     *   ],
+     *   "orderBy": {"排序字段（created_time）": "DESC"},
+     *   "sumField": "sum求和字段（数值类型）";
+     * }
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    updateBatchBySenior(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             * 批量更新，这个方式是采用遍历数据单条记录更新的方式（不合适大批量的数据更新）
+             */
+            self.db_instance.updateBatchBySenior(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 获取统计信息，count统计
+     * @param paras 参数集合，任意参数的组合
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数结构
+     *{
+     *   "keyword": [
+     *       {"key": "查询条件1", "value": "值", "logic": "and", "operator": "="},
+     *       {"key": "查询条件2", "value": "值", "logic": "and", "operator": "="},
+     *       {"key": "查询条件3", "value": "值", "logic": "and", "operator": "="}
+     *   ],
+     *   "orderBy": {"排序字段（created_time）": "DESC"},
+     *   "aggregate":[{"count": "money"}]
+     *}
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntityByAggregate(paras, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.getEntityByAggregate(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 物理删除数据实体对象
+     * @param paras 删除条件模型
+     * 参数 结构
+     * {
+     *   keyword:
+     *     [
+     *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"}
+     *     ]
+     * }
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    deleteEntity(paras) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            self.db_instance.deleteEntity(paras)
+                .then(function (data) {
+                    resolve(data);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
 }
 
 /**
- * 根据ids获取实体对象
- * @param id 主键ids
- * @param use_cache 是否使用缓存；true表示使用缓存，单个数组数量不宜太多
- * 参数 结构
- * [
- *   "id1",
- *   "id2"
- * ]
- * 返回：{...}实体对象
- * author:zack zou
- * create time:2017-03-29
+ * 方法块：指向具体的数据库实例对象
+ * 假如存在方法扩展，直接在这里写入新的方法
  */
-m.getEntityByIds = function (ids, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        var condition = {
-            "keyword": [
-                {"logic": "and", "key": 'id', "operator": "in", "value": ids}
-            ]
-        }
-        db_instance.getEntity(condition)
-            .then(function (data) {
-                if (data && data.length > 0)
-                    resolve(data[0]);
-                else {
-                    //Not find
-                    resolve(null);
-                }
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
+class entity_name extends base {
+
+
+    /**
+     * 根据id获取实体对象
+     * @param id 主键id
+     * @param use_cache 是否使用缓存；true表示使用缓存
+     * 参数 结构
+     * {
+     *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
+     *   keyword:
+     *     [
+     *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
+     *        {"key": "valid", "value": "1"}
+     *     ]
+     * }
+     * 返回：{...}实体对象
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntityById(id, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            let condition = {
+                "keyword": [
+                    {"logic": "and", "key": 'id', "operator": "=", "value": id}
+                ]
+            }
+            self.db_instance.getEntity(condition)
+                .then(function (data) {
+                    if (data && data.length > 0)
+                        resolve(data[0]);
+                    else {
+                        //Not find
+                        resolve(null);
+                    }
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * 根据ids获取实体对象
+     * @param id 主键ids
+     * @param use_cache 是否使用缓存；true表示使用缓存，单个数组数量不宜太多
+     * 参数 结构
+     * [
+     *   "id1",
+     *   "id2"
+     * ]
+     * 返回：{...}实体对象
+     * author:zack zou
+     * create time:2017-10-23
+     */
+    getEntityByIds(ids, use_cache) {
+        let self = this;
+        //定义结构
+        return new Promise(function (resolve, reject) {
+            /**
+             * 数据缓存暂时做方案预留
+             */
+            let condition = {
+                "keyword": [
+                    {"logic": "and", "key": 'id', "operator": "in", "value": ids}
+                ]
+            }
+            self.db_instance.getEntity(condition)
+                .then(function (data) {
+                    if (data && data.length > 0)
+                        resolve(data);
+                    else {
+                        //Not find
+                        resolve(null);
+                    }
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+
+
+
+
+
 }
 
-/**
- * 分页查询实体模型信息
- * @param paras 参数集合，任意参数的组合
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数 结构
- * {
- *   start: 开始数据索引
- *   length: 获取数据行数
- *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
- *   keyword:
- *     [
-         {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
-         {"key": "valid", "value": "1"}
-      ]
- * }
- * 返回:{
-     data: [],                  //数据列表
-     recordsTotal: 0,           //查询记录总数
-     start: 0,                  //当前页索引
-     length: 10                  //页大小
-  }
- * author:zack zou
- * create time:2017-03-29
- */
-m.getEntityList = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.getEntityList(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 查询瀑布数据列表，不返回记录总数，当返回的isLastPage=true，查询到了末尾
- * 查询记录length，查询可以length+1，前台数据只显示length的记录，判断尾页，利用length+1判断，小于等于length的记录到了末尾页面
- * @param paras 关键参数：paras.command、paras.keyword、paras.orderBy
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数 结构
- * {
- *   start: 开始数据索引
- *   length: 获取数据行数
- *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
- *   keyword:
- *     [
-         {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
-         {"key": "valid", "value": "1"}
-      ]
- * }
- * 返回:{
-     data: [],                  //数据列表
-     isLastPage:false,          //当前页是否为最后页
-     start: 0,                  //当前页索引
-     length: 10                 //页大小
-  }
- * author:zack zou
- * create time:2017-03-29
- */
-m.getEntityListByWaterfall = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.getEntityListByWaterfall(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 根据动态参数条件查询数据实体对象
- * @param paras 参数模型
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数 结构
- * {
- *   orderBy:{"字段名":"规则（ASC|DESC）"  字段名:默认为 createtime  规则:默认为 DESC }
- *   keyword:
- *     [
-         {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"},
-         {"key": "valid", "value": "1"}
-      ]
- * }
- * 返回:[]
- * author:zack zou
- * create time:2017-03-29
- */
-m.getEntity = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.getEntity(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 新增实体模型信息
- * @param paras 参数
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数 结构
- * {
- *      //新增主键id，可缺省，自动赋值，也可以补全id值
- *      “字段1”:"值"
- *      “字段1”:"值"
- *      ...
- * }
- * author:zack zou
- * create time:2017-03-29
- */
-m.insertEntity = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.insertEntity(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 批量新增实体模型数据
- * @param data 实体列表数组
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数结构
- * [{
- *      //新增主键id，可缺省，自动赋值，也可以补全id值
- *      “字段1”:"值"
- *      “字段1”:"值"
- *      ...
- * }]
- * author:zack zou
- * create time:2017-03-29
- */
-m.insertBatch = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.insertBatch(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-
-    });
-    return promise;
-}
-
-/**
- * 修改实体信息，可以进行运算的字段的更新（加减）
- * @param paras 参数（限制字段类型为数字类型）
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数结构
- {
-     "update": [
-         //字段：替换更新
-         {"key": "字段1", "value": '值', "operator": "replace"},
-         //字段：累加（数值类型）
-         {"key": "字段2", "value": 1, "operator": "plus"},
-         //字段：累减（数值类型）
-         {"key": "字段3", "value": 1, "operator": "reduce"}
-     ],
-     "keyword": [
-        //where条件：一般以主键id作为更新条件，支持多条件组合语句
-        {"key": "条件字段1", "value": '值', "logic": "and", "operator": "="}
-     ]
- }
- * author:zack zou
- * create time:2017-03-29
- */
-m.updateBySenior = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.updateBySenior(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 批量更新数据
- * @param data 实体列表数组
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数结构
- {
-    "keyword": [
-        {"key": "查询条件1", "value": "值", "logic": "and", "operator": "="},
-        {"key": "查询条件2", "value": "值", "logic": "and", "operator": "="},
-        {"key": "查询条件3", "value": "值", "logic": "and", "operator": "="}
-    ],
-    "orderBy": {"排序字段（created_time）": "DESC"},
-    "sumField": "sum求和字段（数值类型）";
- }
- *
- * author:zack zou
- * create time:2017-03-29
- */
-m.updateBatchBySenior = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         * 批量更新，这个方式是采用遍历数据单条记录更新的方式（不合适大批量的数据更新）
-         */
-        db_instance.updateBatchBySenior(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 获取统计信息，count统计
- * @param paras 参数集合，任意参数的组合
- * @param use_cache 是否使用缓存；true表示使用缓存
- * 参数结构
- {
-    "keyword": [
-        {"key": "查询条件1", "value": "值", "logic": "and", "operator": "="},
-        {"key": "查询条件2", "value": "值", "logic": "and", "operator": "="},
-        {"key": "查询条件3", "value": "值", "logic": "and", "operator": "="}
-    ],
-    "orderBy": {"排序字段（created_time）": "DESC"},
-    "aggregate":[{"count": "money"}]
- }
- * author:zack zou
- * create time:2017-03-29
- */
-m.getEntityByAggregate = function (paras, use_cache) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.getEntityByAggregate(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-/**
- * 物理删除数据实体对象
- * @param paras 删除条件模型
- * 参数 结构
- * {
- *   keyword:
- *     [
- *        {"key": "字段名", "value":"值", "logic": "连接联符 （默认为and 非必须 ）", operator: "关联符号 (默认为: = 可以为空)"}
- *     ]
- * }
- * author:zack zou
- * create time:2017-04-06
- */
-m.deleteEntity = function (paras) {
-    //定义结构
-    var promise = new Promise(function (resolve, reject) {
-        /**
-         * 数据缓存暂时做方案预留
-         */
-        db_instance.deleteEntity(paras)
-            .then(function (data) {
-                resolve(data);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
-    });
-    return promise;
-}
-
-module.exports = exports = m;
+module.exports = entity_name;
 ```
 
 
@@ -627,9 +693,9 @@ Ok, you can now play happily~
 
 
 
-### Use instance to show
+### Use instance to show（方法使用示例）
 
-#### Query example
+#### Query example（示例：查询）
 
 There are several ways to apply the query to different business scenarios. Paging query, waterfall flow inquiries, Standard query
 
@@ -656,7 +722,7 @@ There are several ways to apply the query to different business scenarios. Pagin
 
 
 
-#### Insert example
+#### Insert example（示例：新增）
 
 There is also a new batch method db_instance.insertBatch(arr),The incoming value is an array of objects
 
@@ -681,7 +747,7 @@ There is also a new batch method db_instance.insertBatch(arr),The incoming value
 
 
 
-#### Update example
+#### Update example（示例：更新）
 
 There are two main ways to update the field,replace or plus
 
@@ -714,7 +780,7 @@ There are two main ways to update the field,replace or plus
 
 
 
-#### Delete example
+#### Delete example（示例：删除）
 
 Physical deletion, generally do not recommend this operation, it is recommended to delete the logic
 
@@ -742,7 +808,7 @@ Physical deletion, generally do not recommend this operation, it is recommended 
 
 
 
-#### Transaction example
+#### Transaction example（实例：事务）
 
 Can only achieve local Transaction 
 
@@ -850,7 +916,7 @@ m.addFileRelation = function (paras) {
 
 
 
-#### stored  procedure example
+#### stored  procedure example（示例：存储过程）
 
 Onela An example of executing a stored procedure
 
@@ -887,7 +953,7 @@ m.procGetUserInfoList = function (paras) {
 
 
 
-### Version update log
+### Version update log（版本更新日志）
 
 #### v1.2.0 (2017-05-27 update)： Increase the bulk update
 
@@ -924,4 +990,14 @@ var p = {
 #### v1.2.1 (2017-08-22 update)： insert data defect repair
 
 v1.2.1 (2017-08-22 更新)：修复新增默认字段的bug修复
+
+
+
+#### v1.3.0 (2017-10-26 update)：Separation tool class method
+
+分离onela中分辅助工具类方法，onela-tools项目是基于onela的代码工具类项目，方便更快更便捷的构建项目代码。分离之后的onela将更加纯净，后续版本升级计划将专注ORM框架本身，敬请期待。
+
+onela-tools项目地址：https://github.com/zouwei/onela-tools
+
+
 
