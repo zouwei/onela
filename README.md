@@ -1001,3 +1001,12 @@ onela-tools项目地址：https://github.com/zouwei/onela-tools
 
 
 
+#### v1.3.1 (2017-11-08 update)：bug repair
+
+v1.3.1 (2017-11-08 更新)：修复bug
+
+
+
+#### v1.3.2 (2018-01-03 update)：bug repair
+
+v1.3.2 (2018-01-03  更新)：修复新增以及批量新增默认值导致的报错
