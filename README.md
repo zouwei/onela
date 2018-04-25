@@ -38,7 +38,7 @@ npm install onela
  * 数据库配置，可以初始化多个数据库实例
  */
 let dbconfig = [{
-    "name": "default",      // 数据库实例名称
+    "engine": "default",    // 数据库实例名称
     "type": "mysql",        // 数据库类型（目前只支持mysql）
     "value": {
         "connectionLimit": 5,
