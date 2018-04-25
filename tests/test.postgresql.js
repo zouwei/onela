@@ -2,18 +2,19 @@
  * 数据库配置，可以初始化多个数据库实例
  */
 let dbconfig = [{
-    "engine": "default",    // 数据库实例名称
-    "type": "mysql",        // 数据库类型（目前只支持mysql）
+    "engine": "default",
+    "type": "PostgreSQL",           // 不区分大小写
     "value": {
-        "connectionLimit": 5,       // 连接池限制
-        "host": "localhost",        // 数据库地址
-        "user": "",                 // 用户名
-        "password": "",             // 密码
-        "database": "todo"          // 数据名称
+        "port": 3432,
+        "host": "127.0.0.1",
+        "user": "manor",
+        "password": "test",
+        "database": "test_db"
     }
 }];
 
-const {Onela, OnelaBaseModel} = require("../lib/onela");
+const {Old, Onela, OnelaBaseModel} = require("../lib/onela");
+
 // 初始化Onela模块
 Onela.init(dbconfig);
 // 已经在OnelaBaseModel封装的常用方法，可以在此基础自行扩展
@@ -25,7 +26,7 @@ class ToDoManager extends OnelaBaseModel {
 // 【重要】单例模式，数据表配置
 ToDoManager.configs = {
     fields: [
-        {name: "id", type: "int", default: null},
+        {name: "id", type: "int", default: null, increment: true},
         {name: "content", type: "varchar"},
         {name: "is_done", type: "int", default: 0},
         {
@@ -33,7 +34,11 @@ ToDoManager.configs = {
             return new Date()
         }
         },
-        {name: "finish_time", type: "datetime", default: null}
+        {
+            name: "finish_time", type: "datetime", default: null, default: () => {
+            return new Date()
+        }
+        }
     ],
     tableName: "todos",
     engine: "default"
@@ -45,33 +50,41 @@ ToDoManager.configs = {
 ToDoManager.transaction().then(t => {
     // 先新增一条记录
     ToDoManager.insertEntity({
-        "content": "测试"
+        "content": "测试事务"
     }, {transaction: t})
         .then(data => {
             // 再对新增的记录执行修改
             return ToDoManager.updateEntity({
                 "update": [
-                    {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
+                    {"key": "content", "value": "事务修改", "operator": "replace"}    // 修改了content字段
                 ],
                 "where": [
-                    {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
+                    {"logic": "and", "key": "id", operator: "=", "value": 8}
                 ]
             }, {transaction: t});
         })
         .then(data => {
             console.log('执行结果', data);
-            // 事务提交
-            t.commit(() => {
-                t.release();
+            t.commit(t).then(d => {
+                console.log(d);
             });
         })
         .catch(ex => {
-            console.log('事务异常回滚', ex.message);
-            // 事务回滚
-            t.rollback(() => {
-                t.release();
+            console.log('事务异常回滚', ex);
+            t.rollback(t).then(d => {
+                console.log(d);
             });
         });
+});
+
+
+/**
+ * 单例模式：新增
+ */
+ToDoManager.insertEntity({
+    "content": "测试"
+}).then(data => {
+    console.log('查询结果', data)
 });
 
 
@@ -80,33 +93,22 @@ ToDoManager.transaction().then(t => {
  */
 ToDoManager.getEntity({
     where: [
-        //{"logic": "and", "key": "id", "operator": "=", "value": 1}
+        {"logic": "and", "key": "id", "operator": "=", "value": 6},
+        {"logic": "and", "key": "id", "operator": "=", "value": 6},
+        {"logic": "and", "key": "id", "operator": "in", "value": [4, 6]}
     ]
 }, null).then(data => {
     console.log('查询结果', data)
 }).then();
 
-/**
- * 单例模式：新增
- */
-ToDoManager.insertEntity({
-    "content":"测试"
-}).then(data=>{console.log('查询结果',data)});
 
 /**
  * 单例模式：分页查询
  */
 ToDoManager.getEntityList({
     "where": [
-            //{"logic": "and", "key": "id", "operator": "=", "value": 1}
-        ]
-}).then(console.log);
-
-/**
- * 单例模式：新增
- */
-ToDoManager.insertEntity({
-    content: "设计智能保险顾问的用户体系"
+        {"logic": "and", "key": "id", "operator": "=", "value": 2}
+    ]
 }).then(console.log);
 
 /**
@@ -123,7 +125,7 @@ ToDoManager.insertBatch([
  */
 ToDoManager.deleteEntity({
     "where": [
-        {"key": "id", operator: "in", value: [12360,12361], logic: "and"},
+        {"key": "id", operator: "in", value: [9, 10], logic: "and"},
         // {"key": "is_done", operator: "=", value: 1, logic: "and"}
     ]
 }).then(console.log);
@@ -133,10 +135,18 @@ ToDoManager.deleteEntity({
  */
 ToDoManager.updateEntity({
     update: [
-        {key: "is_done", value: 1, operator: "replace"}
+        {key: "is_done", value: 1, operator: "replace"},
+        {
+            "key": "content",		 //update field
+            "case_field": "id",		 //balance =  CASE id
+            "case_item": [
+                {"case_value": 3, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
+                {"case_value": 6, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
+            ]
+        }
     ],
     where: [
-        {"key": "id", operator: "in", value: [12362], logic: "and"},
+        {"key": "id", operator: "in", value: [3, 6], logic: "and"},
     ]
 }).then(console.log);
 
@@ -145,7 +155,7 @@ ToDoManager.updateEntity({
  */
 ToDoManager.getEntityByAggregate({
     // where:
-    "aggregate":[
+    "aggregate": [
         {"function": "count", "field": "is_done", "name": "undone_tasks"},
     ]
 }).then(console.log);

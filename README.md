@@ -6,26 +6,36 @@
 
 
 
-### 重大更新：v2.0.0版本发布
+### 重大更新：v2.1.0版本发布
 
-此版本重大更新，原有如果使用了V2.0.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
+此版本重大更新，原有如果使用了V2.1.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
 
-特别感谢Hugh-won在v2.0.0版本改进提供帮助~
+特别感谢Hugh-won在v2.1.0版本改进提供帮助~
+
+**v2.1.0已经支持mysql、PostgreSQL数据库**
+
+**下一版本开发对SQLite数据的支持，敬请期待，如有建议，请在GitHub的Issues区留言~**
 
 ~~~~~
 在就版本中模块引用需要批量调整下
 const onela = require('onela');
 更改为：
-const onela = require('onela').old;
+const onela = require('onela').Old;
 ~~~~~
 
-此版本文档已经更新为最新文档，老版本文档请查看：[老版本文档](https://github.com/zouwei/onela/wiki/v1.*%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3%EF%BC%88%E6%97%A7%E7%89%88%EF%BC%89)
+此版本文档已经更新为最新文档，v2.0.0之前的老版本文档请查看：[老版本文档](https://github.com/zouwei/onela/wiki/v1.*%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3%EF%BC%88%E6%97%A7%E7%89%88%EF%BC%89)
 
 
 
 ### 步骤一：安装node模块（step 1 npm install node_modules）
 
+~~~~~~
 npm install onela
+
+依赖安装
+npm install mysql	// MySQL数据库
+npm install pg		// PostgreSQL数据库
+~~~~~~
 
 
 
@@ -39,7 +49,7 @@ npm install onela
  */
 let dbconfig = [{
     "engine": "default",    // 数据库实例名称
-    "type": "mysql",        // 数据库类型（目前只支持mysql）
+    "type": "mysql",        // 数据库类型：MYSQL（不区分大小写）
     "value": {
         "connectionLimit": 5,
         "host": "localhost",
@@ -47,7 +57,18 @@ let dbconfig = [{
         "password": "",
         "database": "todo"
     }
-}];
+},
+{
+    "engine": "default",
+    "type": "PostgreSQL",           // 数据库类型：PostgreSQL（不区分大小写）
+    "value": {
+        "port": 3432,
+        "host": "127.0.0.1",
+        "user": "manor",
+        "password": "test",
+        "database": "test_db"
+    }
+];
 
 ```
 
@@ -126,31 +147,29 @@ ToDoManager.configs = {
 ToDoManager.transaction().then(t => {
     // 先新增一条记录
     ToDoManager.insertEntity({
-        "content": "测试"
+        "content": "测试事务"
     }, {transaction: t})
         .then(data => {
             // 再对新增的记录执行修改
             return ToDoManager.updateEntity({
                 "update": [
-                    {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
+                    {"key": "content", "value": "事务修改", "operator": "replace"}    // 修改了content字段
                 ],
                 "where": [
-                    {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
+                    {"logic": "and", "key": "id", operator: "=", "value": 8}
                 ]
             }, {transaction: t});
         })
         .then(data => {
             console.log('执行结果', data);
-            // 事务提交
-            t.commit(() => {
-                t.release();
+            t.commit(t).then(d=>{
+                console.log(d);
             });
         })
         .catch(ex => {
-            console.log('事务异常回滚', ex.message);
-            // 事务回滚
-            t.rollback(() => {
-                t.release();
+            console.log('事务异常回滚', ex);
+            t.rollback(t).then(d=>{
+                console.log(d);
             });
         });
 });
@@ -320,6 +339,42 @@ There are two main ways to update the field,replace or plus
             reject(err);
         });
 ~~~~~~
+
+
+
+#### Update example（示例：复杂SQL更新）
+
+case when then else end 用法举例
+
+```
+ SQL示例：update todos set is_done=1,content= (CASE id WHEN 12381 THEN '修改结果A' WHEN 12384 THEN '修改结果B' END)  where  1=1  and id in (12381, 12384); 
+ 
+ //parameter
+ var p = {
+    update: [
+        {key: "is_done", value: 1, operator: "replace"},
+        {
+            "key": "content",		 //update field
+            "case_field": "id",		 //balance =  CASE id
+            "case_item": [
+                {"case_value": 3, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
+                {"case_value": 6, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
+            ]
+        }
+    ],
+    where: [
+        {"key": "id", operator: "in", value: [3,6], logic: "and"},
+    ]
+ }
+ //execute update
+  ToDoManager.updateEntity(p)
+        .then((data)=> {
+            resolve(data);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
+```
 
 
 
