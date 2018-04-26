@@ -6,13 +6,15 @@
 
 
 
-### 重大更新：v2.1.0版本发布
+### 重大更新：v2.0.0版本发布
 
 此版本重大更新，原有如果使用了V2.1.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
 
-特别感谢Hugh-won在v2.1.0版本改进提供帮助~
+特别感谢Hugh-won在v2.0.0版本改进提供帮助~
 
 **v2.1.0已经支持mysql、PostgreSQL数据库**
+
+**v2.2.0新增支持SQLite数据库**
 
 **下一版本开发对SQLite数据的支持，敬请期待，如有建议，请在GitHub的Issues区留言~**
 
@@ -30,11 +32,12 @@ const onela = require('onela').Old;
 ### 步骤一：安装node模块（step 1 npm install node_modules）
 
 ~~~~~~
-npm install onela
+npm install onela		// 项目核心包
 
 依赖安装
 npm install mysql	// MySQL数据库
 npm install pg		// PostgreSQL数据库
+npm install sqlite3	// SQLite数据库
 ~~~~~~
 
 
@@ -162,13 +165,13 @@ ToDoManager.transaction().then(t => {
         })
         .then(data => {
             console.log('执行结果', data);
-            t.commit(t).then(d=>{
+            t.commit().then(d=>{
                 console.log(d);
             });
         })
         .catch(ex => {
             console.log('事务异常回滚', ex);
-            t.rollback(t).then(d=>{
+            t.rollback().then(d=>{
                 console.log(d);
             });
         });
@@ -433,16 +436,12 @@ ToDoManager.transaction().then(t => {
         .then(data => {
             console.log('执行结果', data);
             // 事务提交
-            t.commit(() => {
-                t.release();
-            });
+            t.commit();
         })
         .catch(ex => {
             console.log('事务异常回滚', ex.message);
             // 事务回滚
-            t.rollback(() => {
-                t.release();
-            });
+            t.rollback();
         });
 });
 ~~~~~~
@@ -451,11 +450,28 @@ ToDoManager.transaction().then(t => {
 
 
 
+### 版本更新日志
+
+
+
+#### v2.2.0(2018-04-26)：onela新增数据库映射
+
+- 新增了对SQLite的支持
+- 修改了事务语法
+
+
+
+####v2.1.0(2018-04-25)：onela新增数据库映射
+
+* 新增了对PostgreSQL的支持
+
+
+
 #### v2.0.0(2018-04-23)：onela新版发布
 
 * 面向对象编程
 * 加强了数据表配置结构字段、类型、默认值，等配置，语义设计更规范
 * 兼容老版本代码（需要在引用的时候区分下）
-* 代码简化，例如事务处理
-* 简化项目初始化配置代码，使用更加方便
+* 简化项目初始化配置代码，代码简化，例如事务处理
+* 仅支持Mysql对象关系映射
 

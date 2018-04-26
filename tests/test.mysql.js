@@ -3,12 +3,12 @@
  */
 let dbconfig = [{
     "engine": "default",    // 数据库实例名称
-    "type": "mysql",        // 数据库类型（目前只支持mysql）
+    "type": "mysql",        // 数据库类型
     "value": {
         "connectionLimit": 5,
         "host": "127.0.0.1",
         "user": "test",
-        "password": "test",
+        "password": "7t1tusx+pvluIj",
         "database": "test_db"
     }
 }];
@@ -39,38 +39,38 @@ ToDoManager.configs = {
     engine: "default"
 };
 
-// /**
-//  * 事务
-//  */
-// ToDoManager.transaction().then(t => {
-//     // 先新增一条记录
-//     ToDoManager.insertEntity({
-//         "content": "测试"
-//     }, {transaction: t})
-//         .then(data => {
-//             // 再对新增的记录执行修改
-//             return ToDoManager.updateEntity({
-//                 "update": [
-//                     {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
-//                 ],
-//                 "where": [
-//                     {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
-//                 ]
-//             }, {transaction: t});
-//         })
-//         .then(data => {
-//             console.log('执行结果', data);
-//             t.commit(t).then(d=>{
-//                 console.log(d);
-//             });
-//         })
-//         .catch(ex => {
-//             console.log('事务异常回滚', ex);
-//             t.rollback(t).then(d=>{
-//                 console.log(d);
-//             });
-//         });
-// });
+/**
+ * 事务
+ */
+ToDoManager.transaction().then(t => {
+    // 先新增一条记录
+    ToDoManager.insertEntity({
+        "content": "测试"
+    }, {transaction: t})
+        .then(data => {
+            // 再对新增的记录执行修改
+            return ToDoManager.updateEntity({
+                "update": [
+                    {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
+                ],
+                "where": [
+                    {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
+                ]
+            }, {transaction: t});
+        })
+        .then(data => {
+            console.log('执行结果', data);
+            t.commit().then(d=>{
+                console.log(d);
+            });
+        })
+        .catch(ex => {
+            console.log('事务异常回滚', ex);
+            t.rollback().then(d=>{
+                console.log(d);
+            });
+        });
+});
 
 //
 // /**
@@ -119,25 +119,26 @@ ToDoManager.configs = {
 //     ]
 // }).then(console.log);
 //
-/**
- * 单例模式：更新（对于删除，建议使用逻辑删除）
- */
-ToDoManager.updateEntity({
-    update: [
-        {key: "is_done", value: 1, operator: "replace"},
-        {
-            "key": "content",		 //update field
-            "case_field": "id",		 //balance =  CASE id
-            "case_item": [
-                {"case_value": 12381, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
-                {"case_value": 12384, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
-            ]
-        }
-    ],
-    where: [
-        {"key": "id", operator: "in", value: [12381, 12384], logic: "and"},
-    ]
-}).then(console.log);
+// /**
+//  * 单例模式：更新（对于删除，建议使用逻辑删除）
+//  */
+// ToDoManager.updateEntity({
+//     update: [
+//         {key: "is_done", value: 1, operator: "replace"},
+//         {
+//             "key": "content",		 //update field
+//             "case_field": "id",		 //balance =  CASE id
+//             "case_item": [
+//                 {"case_value": 12381, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
+//                 {"case_value": 12384, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
+//             ]
+//         }
+//     ],
+//     where: [
+//         {"key": "id", operator: "in", value: [12381, 12384], logic: "and"},
+//     ]
+// }).then(console.log);
+
 //
 // /**
 //  * 单例模式：实时统计
