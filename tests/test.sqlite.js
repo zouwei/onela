@@ -62,97 +62,94 @@ ToDoManager.transaction().then(t => {
         })
         .then(data => {
             console.log('执行结果', data);
-            t.commit().then(d=>{
-                console.log(d);
-            });
+            t.commit();
         })
         .catch(ex => {
             console.log('事务异常回滚', ex);
-            t.rollback().then(d=>{
-                console.log(d);
-            });
+            t.rollback();
         });
 });
 
-// /**
-//  * 单例模式：新增
-//  */
-// ToDoManager.insertEntity({
-//     "content": "测试"
-// }).then(data => {
-//     console.log('查询结果', data)
-// });
+/**
+ * 单例模式：新增
+ */
+ToDoManager.insertEntity({
+    "content": "测试"
+}).then(data => {
+    console.log('查询结果', data)
+});
 
 
 
-// /**
-//  * 单例模式：数据查询
-//  */
-// ToDoManager.getEntity({
-//     select:["id","content"],
-//     where: [
-//          {"logic": "and", "key": "id", "operator": "in", "value": [9,10]}
-//     ],
-//     limit:[0,10]
-// }, null).then(data => {
-//     console.log('查询结果', data)
-// }).then();
+/**
+ * 单例模式：数据查询
+ */
+ToDoManager.getEntity({
+    select:["id","content"],
+    where: [
+         //{"logic": "and", "key": "id", "operator": "in", "value": [9,10]}
+    ],
+    orderBy:{"id":"desc"},
+    limit:[0,10]
+}, null).then(data => {
+    console.log('查询结果', data)
+}).then();
 
 
-// /**
-//  * 单例模式：分页查询
-//  */
-// ToDoManager.getEntityList({
-//     "where": [
-//             //{"logic": "and", "key": "id", "operator": "=", "value": 1}
-//         ]
-// }).then(console.log);
+/**
+ * 单例模式：分页查询
+ */
+ToDoManager.getEntityList({
+    "where": [
+            //{"logic": "and", "key": "id", "operator": "=", "value": 1}
+        ]
+}).then(console.log);
 
-// /**
-//  * 单例模式：批量新增
-//  */
-// ToDoManager.insertBatch([
-//     {content: "测试A"},
-//     {content: "测试B"},
-//     {content: "测试C"}
-// ]).then(console.log);
+/**
+ * 单例模式：批量新增
+ */
+ToDoManager.insertBatch([
+    {content: "测试A"},
+    {content: "测试B"},
+    {content: "测试C"}
+]).then(console.log);
 
-// /**
-//  * 单例模式：删除（物理删除，不推荐使用）
-//  */
-// ToDoManager.deleteEntity({
-//     "where": [
-//         {"key": "id", operator: ">=", value:10, logic: "and"}
-//     ]
-// }).then(console.log);
+/**
+ * 单例模式：删除（物理删除，不推荐使用）
+ */
+ToDoManager.deleteEntity({
+    "where": [
+        {"key": "id", operator: ">=", value:10, logic: "and"}
+    ]
+}).then(console.log);
 
-// /**
-//  * 单例模式：更新（对于删除，建议使用逻辑删除）
-//  */
-// ToDoManager.updateEntity({
-//     update: [
-//         {key: "is_done", value: 1, operator: "replace"},
-//         {
-//             "key": "content",		 //update field
-//             "case_field": "id",		 //balance =  CASE id
-//             "case_item": [
-//                 {"case_value": 22, "value": "A", "operator": "replace"},		//WHEN '001' THEN 1
-//                 {"case_value": 23, "value": "B", "operator": "replace"}		//WHEN '001' THEN balance+2
-//             ]
-//         }
-//     ],
-//     where: [
-//         {"key": "id", operator: "in", value: [22, 23], logic: "and"},
-//     ]
-// }).then(console.log);
+/**
+ * 单例模式：更新（对于删除，建议使用逻辑删除）
+ */
+ToDoManager.updateEntity({
+    update: [
+        {key: "is_done", value: 1, operator: "replace"},
+        {
+            "key": "content",		 //update field
+            "case_field": "id",		 //balance =  CASE id
+            "case_item": [
+                {"case_value": 22, "value": "A", "operator": "replace"},		//WHEN '001' THEN 1
+                {"case_value": 23, "value": "B", "operator": "replace"}		//WHEN '001' THEN balance+2
+            ]
+        }
+    ],
+    where: [
+        {"key": "id", operator: "in", value: [22, 23], logic: "and"},
+    ]
+}).then(console.log);
 
-// /**
-//  * 单例模式：实时统计
-//  */
-// ToDoManager.getEntityByAggregate({
-//     // where:
-//     "aggregate":[
-//         {"function": "count", "field": "is_done", "name": "undone_tasks"},
-//     ]
-// }).then(console.log);
+/**
+ * 单例模式：实时统计
+ */
+ToDoManager.getEntityByAggregate({
+    // where:
+    "aggregate":[
+        {"function": "count", "field": "is_done", "name": "undone_tasks"},
+    ]
+}).then(console.log);
 
