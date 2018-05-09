@@ -125,6 +125,7 @@ ToDoManager.deleteEntity({
 
 /**
  * 单例模式：更新（对于删除，建议使用逻辑删除）
+ *
  */
 ToDoManager.updateEntity({
     update: [
