@@ -3,17 +3,18 @@
  */
 let dbconfig = [{
     "engine": "default",    // 数据库实例名称
-    "type": "mysql",        // 数据库类型
+    "type": "sqlserver",        // 数据库类型
     "value": {
-        "connectionLimit": 5,
-        "host": "127.0.0.1",
-        "user": "test",
-        "password": "7t1tusx+pvluIj",
+        // "connectionLimit": 5,
+        "host": "rm-bp1oc0prqj7304v40to.sqlserver.rds.aliyuncs.com",
+        "port": 3433,
+        "user": "onela",
+        "password": "onela@123",
         "database": "test_db"
     }
 }];
 
-const { Onela, OnelaBaseModel} = require("../lib/onela");
+const {Onela, OnelaBaseModel} = require("../lib/onela");
 // 初始化Onela模块
 Onela.init(dbconfig);
 // 已经在OnelaBaseModel封装的常用方法，可以在此基础自行扩展
@@ -25,71 +26,90 @@ class ToDoManager extends OnelaBaseModel {
 // 【重要】单例模式，数据表配置
 ToDoManager.configs = {
     fields: [
-        {name: "id", type: "int", default: null},
-        {name: "content", type: "varchar"},
+        {name: "id", type: "Int", default: null, increment: true},
+        {name: "content", type: "nvarchar"},
         {name: "is_done", type: "int", default: 0},
         {
             name: "create_time", type: "datetime", default: () => {
             return new Date()
         }
         },
-        {name: "finish_time", type: "datetime", default: null}
+        {
+            name: "finish_time", type: "datetime", default: () => {
+            return new Date()
+        }
+        }
     ],
     tableName: "todos",
     engine: "default"
 };
 
-/**
- * 事务
- */
-ToDoManager.transaction().then(t => {
-    // 先新增一条记录
-    ToDoManager.insertEntity({
-        "content": "测试"
-    }, {transaction: t})
-        .then(data => {
-            // 再对新增的记录执行修改
-            return ToDoManager.updateEntity({
-                "update": [
-                    {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
-                ],
-                "where": [
-                    {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
-                ]
-            }, {transaction: t});
-        })
-        .then(data => {
-            console.log('执行结果', data);
-            t.commit().then(d=>{
-                console.log(d);
-            });
-        })
-        .catch(ex => {
-            console.log('事务异常回滚', ex);
-            t.rollback().then(d=>{
-                console.log(d);
-            });
-        });
-});
 
-//
+const sleep = (ms = 1000) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
+console.time("睡眠时间");
+
+
+sleep(1000)
+    .then(() => {
+
+        //
+        // /**
+        //  * 单例模式：新增
+        //  */
+        // ToDoManager.insertEntity({
+        //     "content": "中文1",
+        //     "is_done": 100
+        // }).then(data => {
+        //     console.log('查询结果', data);
+        // });
+
+
 // /**
-//  * 单例模式：数据查询
+//  * 事务
 //  */
-// ToDoManager.getEntity({
-//     where: [
-//         //{"logic": "and", "key": "id", "operator": "=", "value": 1}
-//     ]
-// }, null).then(data => {
-//     console.log('查询结果', data)
-// }).then();
-//
-// /**
-//  * 单例模式：新增
-//  */
-// ToDoManager.insertEntity({
-//     "content":"测试"
-// }).then(data=>{console.log('查询结果',data)});
+// ToDoManager.transaction().then(t => {
+//     // 先新增一条记录
+//     ToDoManager.insertEntity({
+//         "content": "测试"
+//     }, {transaction: t})
+//         .then(data => {
+//             // 再对新增的记录执行修改
+//             return ToDoManager.updateEntity({
+//                 "update": [
+//                     {"key": "content", "value": "执行修改测试", "operator": "replace"}    // 修改了content字段
+//                 ],
+//                 "where": [
+//                     {"logic": "and", "key": "id", operator: "=", "value": data.insertId}
+//                 ]
+//             }, {transaction: t});
+//         })
+//         .then(data => {
+//             console.log('执行结果', data);
+//             t.commit().then(d=>{
+//                 console.log(d);
+//             });
+//         })
+//         .catch(ex => {
+//             console.log('事务异常回滚', ex);
+//             t.rollback().then(d=>{
+//                 console.log(d);
+//             });
+//         });
+// });
+
+
+        /**
+         * 单例模式：数据查询
+         */
+        ToDoManager.getEntity({
+            where: [
+                // {"logic": "and", "key": "id", "operator": "=", "value": 5}
+            ]
+        }, null).then(data => {
+            console.log('查询结果', data)
+        }).then();
 //
 // /**
 //  * 单例模式：分页查询
@@ -150,3 +170,4 @@ ToDoManager.transaction().then(t => {
 //     ]
 // }).then(console.log);
 
+    });
