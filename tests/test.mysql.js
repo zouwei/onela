@@ -33,7 +33,9 @@ ToDoManager.configs = {
             return new Date()
         }
         },
-        {name: "finish_time", type: "datetime", default: null}
+        {name: "finish_time", type: "datetime",  default: () => {
+            return new Date()
+        }}
     ],
     tableName: "todos",
     engine: "default"
