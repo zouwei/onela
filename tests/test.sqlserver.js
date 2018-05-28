@@ -45,9 +45,45 @@ ToDoManager.configs = {
 };
 
 
+const systemHex32ToDecimal = (_hexadecimal) => {
+    // 三十二进制表
+    const hexTab = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "T", "U", "V", "W", "X", "Y"];
+    // 转换结果
+    let hex = [];
+    let quotient = _hexadecimal, remainder = -1;     // 商、取余
+    //console.log("quotient,remainder",quotient,remainder);
+    while (quotient != 0) {
+        remainder = quotient % 32;
+        quotient = parseInt(quotient / 32);
+        //console.log("quotient,remainder",quotient,remainder);
+        // 根据余数生成字符串
+        hex.push(hexTab[remainder])
+    }
+    //颠倒数组
+    hex = hex.reverse();
+    // 输出
+    return hex.join("");
+
+
+    // 0-9，
+    // A-10/B-11/C-12/D-13/E-14/F-15
+    // G-16/H-17/J-18/K-19/L-20/M-21
+    // N-22/P-23/Q-24/R-25/T-26/U-27
+    // V-28/W-29/X-30/Y-31
+
+
+}
+
+console.log("进制", systemHex32ToDecimal(1232));
+// console.log("进制", systemHex32ToDecimal(99999999));
+// console.log("进制", systemHex32ToDecimal(12463));
+// console.log("进制", systemHex32ToDecimal(234513456));
+
+
 const sleep = (ms = 1000) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
+
 console.time("睡眠时间");
 
 
@@ -100,16 +136,16 @@ sleep(1000)
 // });
 
 
-        /**
-         * 单例模式：数据查询
-         */
-        ToDoManager.getEntity({
-            where: [
-                // {"logic": "and", "key": "id", "operator": "=", "value": 5}
-            ]
-        }, null).then(data => {
-            console.log('查询结果', data)
-        }).then();
+        // /**
+        //  * 单例模式：数据查询
+        //  */
+        // ToDoManager.getEntity({
+        //     where: [
+        //         // {"logic": "and", "key": "id", "operator": "=", "value": 5}
+        //     ]
+        // }, null).then(data => {
+        //     console.log('查询结果', data)
+        // }).then();
 //
 // /**
 //  * 单例模式：分页查询
