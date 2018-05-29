@@ -84,51 +84,85 @@ const sleep = (ms = 1000) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-console.time("睡眠时间");
+
+// /**
+//  * 单例模式：新增
+//  */
+// ToDoManager.insertEntity({
+//     "content": "中文2",
+//     "is_done": 100
+// }).then(data => {
+//     console.log('查询结果', data);
+// }).catch(ex=>{
+//     console.log(ex);
+// });
+
+///**
+// * 单例模式：批量新增
+// */
+//ToDoManager.insertBatch([
+//    {content: "批量01","is_done": 100},
+//    {content: "批量02","is_done": 100}
+//]).then(console.log);
+
+// /**
+//  * 单例模式：数据查询
+//  */
+// ToDoManager.getEntity({
+//     where: [
+//           {"logic": "and", "key": "id", "operator": ">=", "value": 12},
+//           {"logic": "and", "key": "id", "operator": "=", "value": 13}
+//     ]
+// }, null).then(data => {
+//     console.log('查询结果', data)
+// }).catch(ex=>{
+//     console.log(ex);
+// });
+
+///**
+// * 单例模式：分页查询
+// */
+//ToDoManager.getEntityList({
+//    "where": [
+//        {"logic": "and", "key": "id", "operator": ">", "value": 12}
+//    ]
+//}).catch(ex => {
+//    console.log(ex);
+//});
+
+///**
+// * 单例模式：删除（物理删除，不推荐使用）
+// */
+//ToDoManager.deleteEntity({
+//    "where": [
+//        {"key": "id", operator: "in", value: [16], logic: "and"}
+//    ]
+//}).catch(ex => {
+//    console.log(ex);
+//});
 
 
-sleep(1000)
-    .then(() => {
-
-        console.timeEnd("睡眠时间");
-        // /**
-        //  * 单例模式：新增
-        //  */
-        // ToDoManager.insertEntity({
-        //     "content": "中文2",
-        //     "is_done": 100
-        // }).then(data => {
-        //     console.log('查询结果', data);
-        // }).catch(ex=>{
-        //     console.log(ex);
-        // });
-
-        // /**
-        //  * 单例模式：数据查询
-        //  */
-        // ToDoManager.getEntity({
-        //     where: [
-        //           {"logic": "and", "key": "id", "operator": ">=", "value": 12},
-        //           {"logic": "and", "key": "id", "operator": "=", "value": 13}
-        //     ]
-        // }, null).then(data => {
-        //     console.log('查询结果', data)
-        // }).catch(ex=>{
-        //     console.log(ex);
-        // });
-
-        /**
-         * 单例模式：分页查询
-         */
-        ToDoManager.getEntityList({
-            "where": [
-                {"logic": "and", "key": "id", "operator": ">=", "value": 12}
-            ]
-        }).catch(ex => {
-            console.log(ex);
-        });
-
-
+/**
+ * 单例模式：更新（对于删除，建议使用逻辑删除）
+ */
+ToDoManager.updateEntity({
+    update: [
+        {key: "is_done", value: 1, operator: "replace"},
+        //{
+        //    "key": "content",		 //update field
+        //    "case_field": "id",		 //balance =  CASE id
+        //    "case_item": [
+        //        {"case_value": 14, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
+        //        {"case_value": 15, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
+        //    ]
+        //}
+    ],
+    where: [
+        {"key": "id", operator: "in", value: [14,,15], logic: "and"}
+    ]
+}).catch(ex => {
+    console.log(ex);
+});
 // /**
 //  * 事务
 //  */
@@ -165,45 +199,6 @@ sleep(1000)
 
 //
 
-//
-// /**
-//  * 单例模式：批量新增
-//  */
-// ToDoManager.insertBatch([
-//     {content: "测试1"},
-//     {content: "测试2"},
-//     {content: "测试3"}
-// ]).then(console.log);
-//
-// /**
-//  * 单例模式：删除（物理删除，不推荐使用）
-//  */
-// ToDoManager.deleteEntity({
-//     "where": [
-//         {"key": "id", operator: "in", value: [12360,12361], logic: "and"},
-//         // {"key": "is_done", operator: "=", value: 1, logic: "and"}
-//     ]
-// }).then(console.log);
-//
-// /**
-//  * 单例模式：更新（对于删除，建议使用逻辑删除）
-//  */
-// ToDoManager.updateEntity({
-//     update: [
-//         {key: "is_done", value: 1, operator: "replace"},
-//         {
-//             "key": "content",		 //update field
-//             "case_field": "id",		 //balance =  CASE id
-//             "case_item": [
-//                 {"case_value": 12381, "value": "修改结果A", "operator": "replace"},		//WHEN '001' THEN 1
-//                 {"case_value": 12384, "value": "修改结果B", "operator": "replace"}		//WHEN '001' THEN balance+2
-//             ]
-//         }
-//     ],
-//     where: [
-//         {"key": "id", operator: "in", value: [12381, 12384], logic: "and"},
-//     ]
-// }).then(console.log);
 
 //
 // /**
@@ -216,4 +211,3 @@ sleep(1000)
 //     ]
 // }).then(console.log);
 
-    });
