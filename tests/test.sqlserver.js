@@ -74,7 +74,7 @@ const systemHex32ToDecimal = (_hexadecimal) => {
 
 }
 
-console.log("进制", systemHex32ToDecimal(1232));
+// console.log("进制", systemHex32ToDecimal(1232));
 // console.log("进制", systemHex32ToDecimal(99999999));
 // console.log("进制", systemHex32ToDecimal(12463));
 // console.log("进制", systemHex32ToDecimal(234513456));
@@ -90,16 +90,43 @@ console.time("睡眠时间");
 sleep(1000)
     .then(() => {
 
-        //
+        console.timeEnd("睡眠时间");
         // /**
         //  * 单例模式：新增
         //  */
         // ToDoManager.insertEntity({
-        //     "content": "中文1",
+        //     "content": "中文2",
         //     "is_done": 100
         // }).then(data => {
         //     console.log('查询结果', data);
+        // }).catch(ex=>{
+        //     console.log(ex);
         // });
+
+        // /**
+        //  * 单例模式：数据查询
+        //  */
+        // ToDoManager.getEntity({
+        //     where: [
+        //           {"logic": "and", "key": "id", "operator": ">=", "value": 12},
+        //           {"logic": "and", "key": "id", "operator": "=", "value": 13}
+        //     ]
+        // }, null).then(data => {
+        //     console.log('查询结果', data)
+        // }).catch(ex=>{
+        //     console.log(ex);
+        // });
+
+        /**
+         * 单例模式：分页查询
+         */
+        ToDoManager.getEntityList({
+            "where": [
+                {"logic": "and", "key": "id", "operator": ">=", "value": 12}
+            ]
+        }).catch(ex => {
+            console.log(ex);
+        });
 
 
 // /**
@@ -136,25 +163,8 @@ sleep(1000)
 // });
 
 
-        // /**
-        //  * 单例模式：数据查询
-        //  */
-        // ToDoManager.getEntity({
-        //     where: [
-        //         // {"logic": "and", "key": "id", "operator": "=", "value": 5}
-        //     ]
-        // }, null).then(data => {
-        //     console.log('查询结果', data)
-        // }).then();
 //
-// /**
-//  * 单例模式：分页查询
-//  */
-// ToDoManager.getEntityList({
-//     "where": [
-//             //{"logic": "and", "key": "id", "operator": "=", "value": 1}
-//         ]
-// }).then(console.log);
+
 //
 // /**
 //  * 单例模式：批量新增
