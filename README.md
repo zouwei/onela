@@ -8,18 +8,22 @@
 
 ### 重大更新：v2.0.0版本发布
 
-此版本重大更新，原有如果使用了V2.1.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
+此版本重大更新，原有如果使用了V2.0.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
 
 特别感谢Hugh-won在v2.0.0版本改进提供帮助~
 
-**v2.1.0已经支持mysql、PostgreSQL数据库**
+**v2.3.0已经支持SQL Server数据库**
 
-**v2.2.0新增支持SQLite数据库**
+**v2.2.0已经支持SQLite数据库**
+
+**v2.1.0已经支持PostgreSQL数据库**
+
+**v2.0.0新增支持MySQL数据库**
 
 **下一版本开发对SQLite数据的支持，敬请期待，如有建议，请在GitHub的Issues区留言~**
 
 ~~~~~
-在就版本中模块引用需要批量调整下
+在就版本中模块引用需要批量调整下(2.0.0之前的老版本兼容）
 const onela = require('onela');
 更改为：
 const onela = require('onela').Old;
@@ -34,10 +38,11 @@ const onela = require('onela').Old;
 ~~~~~~
 npm install onela		// 项目核心包
 
-依赖安装
+依赖包安装
 npm install mysql	// MySQL数据库
 npm install pg		// PostgreSQL数据库
 npm install sqlite3	// SQLite数据库
+npm install tedious	// SQL Server数据库
 ~~~~~~
 
 
@@ -52,7 +57,7 @@ npm install sqlite3	// SQLite数据库
  */
 let dbconfig = [{
     "engine": "default",    // 数据库实例名称
-    "type": "mysql",        // 数据库类型：MYSQL（不区分大小写）
+    "type": "mysql",        // 数据库类型：MYSQL（不区分大小写）,支持类型：mysql、postgresql、sqlite、sqlserver
     "value": {
         "connectionLimit": 5,
         "host": "localhost",
@@ -452,18 +457,21 @@ ToDoManager.transaction().then(t => {
 
 ### 版本更新日志
 
+#### v2.3.0(2018-05-30)：onela新增数据库映射
+
+- 新增对SQL Server数据库的支持
 
 
 #### v2.2.0(2018-04-26)：onela新增数据库映射
 
-- 新增了对SQLite的支持
+- 新增对SQLite数据库的支持
 - 修改了事务语法
 
 
 
 ####v2.1.0(2018-04-25)：onela新增数据库映射
 
-* 新增了对PostgreSQL的支持
+* 新增对PostgreSQL数据库的支持
 
 
 
@@ -473,5 +481,5 @@ ToDoManager.transaction().then(t => {
 * 加强了数据表配置结构字段、类型、默认值，等配置，语义设计更规范
 * 兼容老版本代码（需要在引用的时候区分下）
 * 简化项目初始化配置代码，代码简化，例如事务处理
-* 仅支持Mysql对象关系映射
+* 新增对MySQL的支持（仅支持MySQL对象关系映射）
 
