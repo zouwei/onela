@@ -76,7 +76,7 @@ let dbconfig = [{
         "password": "test",
         "database": "test_db"
     }
-];
+}];
 
 ```
 
