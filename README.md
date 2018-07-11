@@ -13,23 +13,11 @@
 特别感谢Hugh-won在v2.0.0版本改进提供帮助~
 
 **v2.3.0已经支持SQL Server数据库**
-
 **v2.2.0已经支持SQLite数据库**
-
 **v2.1.0已经支持PostgreSQL数据库**
+**v2.0.0改版重构，初始支持MySQL数据库**
 
-**v2.0.0新增支持MySQL数据库**
-
-**下一版本开发对SQLite数据的支持，敬请期待，如有建议，请在GitHub的Issues区留言~**
-
-~~~~~
-在就版本中模块引用需要批量调整下(2.0.0之前的老版本兼容）
-const onela = require('onela');
-更改为：
-const onela = require('onela').Old;
-~~~~~
-
-此版本文档已经更新为最新文档，v2.0.0之前的老版本文档请查看：[老版本文档](https://github.com/zouwei/onela/wiki/v1.*%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3%EF%BC%88%E6%97%A7%E7%89%88%EF%BC%89)
+**onela.js官网：(onela.cn)[http://onela.cn]~**
 
 
 
@@ -452,34 +440,14 @@ ToDoManager.transaction().then(t => {
 ~~~~~~
 
 
+**onela.js v1.*版本已经下线，在猎豹
 
+~~~~~
+在就版本中模块引用需要批量调整下(2.0.0之前的老版本兼容）
+const onela = require('onela');
+更改为：
+const onela = require('onela').Old;
+~~~~~
 
-
-### 版本更新日志
-
-#### v2.3.0(2018-05-30)：onela新增数据库映射
-
-- 新增对SQL Server数据库的支持
-
-
-#### v2.2.0(2018-04-26)：onela新增数据库映射
-
-- 新增对SQLite数据库的支持
-- 修改了事务语法
-
-
-
-####v2.1.0(2018-04-25)：onela新增数据库映射
-
-* 新增对PostgreSQL数据库的支持
-
-
-
-#### v2.0.0(2018-04-23)：onela新版发布
-
-* 面向对象编程
-* 加强了数据表配置结构字段、类型、默认值，等配置，语义设计更规范
-* 兼容老版本代码（需要在引用的时候区分下）
-* 简化项目初始化配置代码，代码简化，例如事务处理
-* 新增对MySQL的支持（仅支持MySQL对象关系映射）
+此版本文档已经更新为最新文档，v2.0.0之前的老版本文档请查看：[老版本文档](https://github.com/zouwei/onela/wiki/v1.*%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3%EF%BC%88%E6%97%A7%E7%89%88%EF%BC%89)
 

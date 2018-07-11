@@ -97,6 +97,16 @@ ToDoManager.getEntityList({
 });
 
 /**
+ * 获取数据瀑布
+ */
+ToDoManager.getEntityWaterfall({
+    "where": [
+        // {"logic": "and", "key": "valid", "operator": "=", "value": 1}
+    ],
+    "limit":[0,6]
+}).then(console.log);
+
+/**
  * 单例模式：删除（物理删除，不推荐使用）
  */
 ToDoManager.deleteEntity({
