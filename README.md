@@ -17,7 +17,7 @@
 **v2.1.0已经支持PostgreSQL数据库**
 **v2.0.0改版重构，初始支持MySQL数据库**
 
-**onela.js官网：(onela.cn)[http://onela.cn]~**
+**onela.js官网：[http://onela.cn](onela.cn)~**
 
 
 
