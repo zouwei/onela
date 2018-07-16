@@ -2,7 +2,6 @@
 
 > Onela是基于node.js开源的基于对象的映射框架，支持各种关系数据库数据基础设施。 同时支持各种数据库对象的读写分离，数据库实例垂直拆分。 在onela架构之上，您可以体验无SQL编程的乐趣，您只需要关注业务逻辑代码部分。 而且，我将在后面的版本的支持下加入分布式缓存来实现前端和后端的node.js程序来挑战大规模应用的情况。
 >
-> Onela is an object-based mapping framework based on node.js open source, supporting a variety of relational database data infrastructure. At the same time support a variety of database object read and write separation, the database instance vertical split. On top of the onela architecture you can experience the fun of programming without SQL, and you only need to focus on the business logic code section. And, I will be in the later version of the support to join the distributed cache to achieve the front and back end with node.js program to challenge the case of large-scale applications.
 
 
 
@@ -17,7 +16,7 @@
 **v2.1.0已经支持PostgreSQL数据库**
 **v2.0.0改版重构，初始支持MySQL数据库**
 
-**onela.js官网：[http://onela.cn](onela.cn)~**
+**onela.js官网：http://onela.cn**
 
 
 
