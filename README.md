@@ -11,14 +11,11 @@
 
 特别感谢Hugh-won在v2.0.0版本改进提供帮助~
 
-**v2.3.0已经支持SQL Server数据库**
-**v2.2.0已经支持SQLite数据库**
-**v2.1.0已经支持PostgreSQL数据库**
-**v2.0.0改版重构，初始支持MySQL数据库**
+目前（v2.3.0）已经支持 MySQL、PostgreSQL、SQL Server、SQLite数据库
 
 **onela.js官网：http://onela.cn**
 
-
+![onela.js 技术交流QQ群二维码](https://raw.githubusercontent.com/zouwei/onela/master/doc/QQ-group-qr.png)
 
 ### 步骤一：安装node模块（step 1 npm install node_modules）
 
