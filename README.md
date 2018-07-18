@@ -13,7 +13,7 @@
 
 目前（v2.3.0）已经支持 MySQL、PostgreSQL、SQL Server、SQLite数据库
 
-**onela.js官网：http://onela.cn**
+**onela.js官网：https://onela.cn**
 
 ![onela.js 技术交流QQ群二维码](https://raw.githubusercontent.com/zouwei/onela/master/doc/QQ-group-qr.png)
 
