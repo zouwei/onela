@@ -436,7 +436,7 @@ ToDoManager.transaction().then(t => {
 ~~~~~~
 
 
-**onela.js v1.*版本已经下线，在猎豹
+**onela.js v1.*版本已经下线
 
 ~~~~~
 在就版本中模块引用需要批量调整下(2.0.0之前的老版本兼容）
