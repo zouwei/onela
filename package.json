@@ -1,6 +1,6 @@
 {
   "name": "onela",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "Onela is an object-based mapping framework based on node.js open source, supporting a variety of relational database data infrastructure. At the same time support a variety of database object read and write separation, the database instance vertical split. On top of the onela architecture you can experience the fun of programming without SQL, and you only need to focus on the business logic code section. And, I will be in the later version of the support to join the distributed cache to achieve the front and back end with node.js program to challenge the case of large-scale applications.",
   "main": "lib/onela.js",
   "scripts": {
