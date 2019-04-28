@@ -5,6 +5,13 @@
 
 
 
+[![NPM version](https://img.shields.io/npm/v/onela.svg)](https://www.npmjs.com/package/onela)
+[![Downloads](https://img.shields.io/npm/dm/onela.svg)](https://www.npmjs.com/package/onela)
+
+[![NPM](https://nodei.co/npm/onela.png?downloads=true)](https://nodei.co/npm/onela/)
+
+
+
 ### 重大更新：v2.0.0版本发布
 
 此版本重大更新，原有如果使用了V2.0.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
