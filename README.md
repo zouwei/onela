@@ -12,17 +12,13 @@
 
 
 
-### 重大更新：v2.0.0版本发布
+### 重大更新：v2.0版本发布
 
 此版本重大更新，原有如果使用了V2.0.0之前的版本请注意，升级到最新版，最原有代码也需要微调。
 
 特别感谢Hugh-won在v2.0.0版本改进提供帮助~
 
 目前（v2.3.0）已经支持 MySQL、PostgreSQL、SQL Server、SQLite数据库
-
-**onela.js官网：https://onela.cn**
-
-![onela.js 技术交流QQ群二维码](https://raw.githubusercontent.com/zouwei/onela/master/doc/QQ-group-qr.png)
 
 ### 步骤一：安装node模块（step 1 npm install node_modules）
 
@@ -42,7 +38,7 @@ npm install tedious	// SQL Server数据库
 
 数据库的配置可以配置在config全局配置中，在初始化调用取出来就可以了了
 
-```
+``` json
 /**
  * 数据库配置，可以初始化多个数据库实例
  */
@@ -73,9 +69,9 @@ let dbconfig = [{
 
 
 
-###步骤三：Onela ORM对象初始化（step 3 Onela ORM object initialization）
+### 步骤三：Onela ORM对象初始化（step 3 Onela ORM object initialization）
 
-~~~~~~
+~~~~~~ json
 const {Onela, OnelaBaseModel}  = require("onela");
 // 初始化Onela模块（建议全局初始化）
 Onela.init(dbconfig);
@@ -85,7 +81,7 @@ Onela.init(dbconfig);
 
 ### 步骤四：单例（数据表）对象配置以及方法的扩展封装
 
-~~~~~
+~~~~~ json
 // 在OnelaBaseModel类中封装了常用的ORM方法
 class ToDoManager extends OnelaBaseModel {
     // 可以在此自定义扩展方法（默认封装没有的方法）
@@ -118,11 +114,11 @@ ToDoManager.configs = {
 
 
 
-###步骤五：常用CRUD操作代码示例（step 5 Examples of common CRUD operation code）
+### 步骤五：常用CRUD操作代码示例（step 5 Examples of common CRUD operation code）
 
 到这一步骤，可以直接使用ORM的方法了，增删改查，包含事务处理。
 
-```
+``` json
 // 【重要】单例模式，数据表配置
 ToDoManager.configs = {
     fields: [
@@ -260,7 +256,7 @@ Ok, you can now play happily~
 
 There are several ways to apply the query to different business scenarios. Paging query, waterfall flow inquiries, Standard query
 
-~~~~~~
+~~~ json
 	//parameter
     let p = {
         "select": ["t.id"],     //Specify the output field, query all fields, use t. * Or select attributes by default
@@ -279,7 +275,7 @@ There are several ways to apply the query to different business scenarios. Pagin
         .catch(function (err) {
             reject(err);
         });
-~~~~~~
+~~~
 
 
 
@@ -287,7 +283,7 @@ There are several ways to apply the query to different business scenarios. Pagin
 
 There is also a new batch method db_instance.insertBatch(arr),The incoming value is an array of objects
 
-~~~~~~
+~~~ json
 	//parameter
     let p = {
         "name":"Sandy",
@@ -304,7 +300,7 @@ There is also a new batch method db_instance.insertBatch(arr),The incoming value
         .catch(function (err) {
             reject(err);
         });
-~~~~~~
+~~~
 
 
 
@@ -312,7 +308,7 @@ There is also a new batch method db_instance.insertBatch(arr),The incoming value
 
 There are two main ways to update the field,replace or plus
 
-~~~~~~
+~~~ json
  //parameter
  var p = {
      "update": [
@@ -337,7 +333,7 @@ There are two main ways to update the field,replace or plus
         .catch(function (err) {
             reject(err);
         });
-~~~~~~
+~~~
 
 
 
@@ -345,7 +341,7 @@ There are two main ways to update the field,replace or plus
 
 case when then else end 用法举例
 
-```
+``` json
  SQL示例：update todos set is_done=1,content= (CASE id WHEN 12381 THEN '修改结果A' WHEN 12384 THEN '修改结果B' END)  where  1=1  and id in (12381, 12384); 
  
  //parameter
@@ -381,7 +377,7 @@ case when then else end 用法举例
 
 Physical deletion, generally do not recommend this operation, it is recommended to delete the logic
 
-~~~~~~
+~~~ json
 
 	//parameter
     let p = {
@@ -399,7 +395,7 @@ Physical deletion, generally do not recommend this operation, it is recommended 
         .catch(function (err) {
             reject(err);
         });
-~~~~~~
+~~~
 
 
 
@@ -409,7 +405,7 @@ Physical deletion, generally do not recommend this operation, it is recommended 
 
 Can only achieve local Transaction 
 
-~~~~~~
+~~~ json
 /**
  * 事务
  */
@@ -440,10 +436,9 @@ ToDoManager.transaction().then(t => {
             t.rollback();
         });
 });
-~~~~~~
+~~~
 
-
-**onela.js v1.*版本已经下线
+*onela.js v1 版本已经下线*
 
 ~~~~~
 在就版本中模块引用需要批量调整下(2.0.0之前的老版本兼容）
