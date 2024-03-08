@@ -38,7 +38,7 @@ npm install tedious	// SQL Server数据库
 
 数据库的配置可以配置在config全局配置中，在初始化调用取出来就可以了了
 
-``` json
+```
 /**
  * 数据库配置，可以初始化多个数据库实例
  */
@@ -71,7 +71,7 @@ let dbconfig = [{
 
 ### 步骤三：Onela ORM对象初始化（step 3 Onela ORM object initialization）
 
-~~~~~~ json
+~~~~~~
 const {Onela, OnelaBaseModel}  = require("onela");
 // 初始化Onela模块（建议全局初始化）
 Onela.init(dbconfig);
@@ -81,7 +81,7 @@ Onela.init(dbconfig);
 
 ### 步骤四：单例（数据表）对象配置以及方法的扩展封装
 
-~~~~~ json
+~~~~~
 // 在OnelaBaseModel类中封装了常用的ORM方法
 class ToDoManager extends OnelaBaseModel {
     // 可以在此自定义扩展方法（默认封装没有的方法）
@@ -118,7 +118,7 @@ ToDoManager.configs = {
 
 到这一步骤，可以直接使用ORM的方法了，增删改查，包含事务处理。
 
-``` json
+```
 // 【重要】单例模式，数据表配置
 ToDoManager.configs = {
     fields: [
@@ -256,7 +256,7 @@ Ok, you can now play happily~
 
 There are several ways to apply the query to different business scenarios. Paging query, waterfall flow inquiries, Standard query
 
-~~~ json
+~~~
 	//parameter
     let p = {
         "select": ["t.id"],     //Specify the output field, query all fields, use t. * Or select attributes by default
@@ -283,7 +283,7 @@ There are several ways to apply the query to different business scenarios. Pagin
 
 There is also a new batch method db_instance.insertBatch(arr),The incoming value is an array of objects
 
-~~~ json
+~~~
 	//parameter
     let p = {
         "name":"Sandy",
@@ -308,7 +308,7 @@ There is also a new batch method db_instance.insertBatch(arr),The incoming value
 
 There are two main ways to update the field,replace or plus
 
-~~~ json
+~~~
  //parameter
  var p = {
      "update": [
@@ -341,7 +341,7 @@ There are two main ways to update the field,replace or plus
 
 case when then else end 用法举例
 
-``` json
+```
  SQL示例：update todos set is_done=1,content= (CASE id WHEN 12381 THEN '修改结果A' WHEN 12384 THEN '修改结果B' END)  where  1=1  and id in (12381, 12384); 
  
  //parameter
@@ -377,7 +377,7 @@ case when then else end 用法举例
 
 Physical deletion, generally do not recommend this operation, it is recommended to delete the logic
 
-~~~ json
+~~~
 
 	//parameter
     let p = {
@@ -399,16 +399,26 @@ Physical deletion, generally do not recommend this operation, it is recommended 
 
 
 
+### sql example（实例：直接执行SQL案例）
+
+Not recommended，Direct execution of sql can only be applied to specific types of databases
+
+~~~
+var sql = "SELECT * FROM tableName Where ...";
+ 
+ ToDoManager.streak(sql).then(result =>{
+ 	// Get execution results
+ }); 
+~~~
+
 
 
 #### Transaction example（实例：事务）
 
 Can only achieve local Transaction 
 
-~~~ json
-/**
- * 事务
- */
+~~~
+// transaction
 ToDoManager.transaction().then(t => {
     // 先新增一条记录
     ToDoManager.insertEntity({
