@@ -7,72 +7,7 @@ import { MySQLActionManager } from './instance/MySQLActionManager.js';
 import { PostgreSQLActionManager } from './instance/PostgreSQLActionManager.js';
 import { SQLiteActionManager } from './instance/SQLiteSQLActionManager.js';
 import { SQLServerActionManager } from './instance/SQLServerActionManager.js';
-
-// === 类型定义 ===
-interface DatabaseConfig {
-  type: 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver';
-  engine: string;
-  value: any;
-}
-
-interface Transaction {
-  client: any;
-  begin: () => Promise<void>;
-  commit: () => Promise<string>;
-  rollback: () => Promise<string>;
-  done?: () => void;
-}
-
-interface QueryOption {
-  transaction?: Transaction | null;
-}
-
-interface KeywordItem {
-  logic?: 'and' | 'or';
-  key: string;
-  operator?: '=' | '>' | '<' | '<>' | '>=' | '<=' | 'in' | 'not in' | '%' | 'x%' | '%%' | 'is';
-  value: any;
-}
-
-interface AggregateItem {
-  function: 'count' | 'sum' | 'max' | 'min' | 'abs' | 'avg';
-  field: string;
-  name: string;
-}
-
-interface UpdateItem {
-  key: string;
-  value: any;
-  operator?: 'replace' | 'plus' | 'reduce';
-  case_field?: string;
-  case_item?: Array<{
-    case_value: any;
-    value: any;
-    operator?: 'replace' | 'plus' | 'reduce';
-  }>;
-}
-
-interface QueryParams {
-  select?: string[];
-  keyword?: KeywordItem[];
-  where?: any[];
-  orderBy?: Record<string, 'ASC' | 'DESC'>;
-  limit?: [number, number];
-  aggregate?: AggregateItem[];
-}
-
-interface InsertParams {
-  insertion: Record<string, any> | Array<Record<string, any>>;
-}
-
-interface UpdateParams extends QueryParams {
-  update: UpdateItem[];
-}
-
-interface DeleteParams extends QueryParams {
-  keyword?: KeywordItem[];
-  where?: any[];
-}
+import type { DatabaseConfig, Transaction, InsertParams, QueryOption, DeleteParams, AggregateItem, QueryParams, UpdateParams } from './interface/onelaType.js';
 
 // ActionManager 通用接口
 interface ActionManager {
@@ -92,7 +27,7 @@ interface ActionManager {
 /**
  * Onela 主类：多数据库管理
  */
-export class Onela {
+class Onela {
   private static _connections: Record<string, ActionManager> = {};
 
   /**
@@ -157,7 +92,7 @@ export class Onela {
 /**
  * 模型基类：封装 CRUD
  */
-export class OnelaBaseModel {
+class OnelaBaseModel {
   protected static action_manager: Promise<ActionManager> | null = null;
   protected static configs = {
     fields: [] as any[],
@@ -265,3 +200,5 @@ export class OnelaBaseModel {
     });
   }
 }
+
+export { Onela, OnelaBaseModel };

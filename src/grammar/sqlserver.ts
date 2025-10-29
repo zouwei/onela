@@ -1,4 +1,4 @@
-import type { KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParameters, UpdateFieldItem , UpdateCaseItem, UpdateCaseField , DeleteParams} from '../interface/onelaType.js';
+import type { KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField , DeleteParams} from '../interface/onelaType.js';
 
 
 /**
@@ -306,7 +306,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
 /**
  * 获取更新参数（UPDATE + CASE WHEN）
  */
-const getUpdateParameters = function (paras: UpdateParameters): UpdateResult {
+const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
   let index = 0;
   var _self: UpdateResult = {
     set: [],

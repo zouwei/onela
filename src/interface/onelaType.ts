@@ -1,6 +1,13 @@
 
 
 // === 数据库实例 ===
+
+interface DatabaseConfig {
+  type: 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver';
+  engine: string;
+  value: any;
+}
+
 interface DBSource {
   READER: any;
   WRITER: any;
@@ -190,7 +197,7 @@ interface Parameter {
 
 
 export type {
-    DBSource, OODBC, Command, CallParas, ProcParam,
+    DatabaseConfig, DBSource, OODBC, Command, CallParas, ProcParam,
     FieldConfig,
     KeywordItem,
     QueryResult, 

@@ -12,6 +12,6 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": ["package.json", "src/**/*"],
   "exclude": ["node_modules","test"]
 }
