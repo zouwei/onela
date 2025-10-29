@@ -5,67 +5,8 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarPostgres from '../grammar/postgresql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParameters, UpdateResult , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
+import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateResult , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
 
-
-
-// // === 类型定义 ===
-// interface Transaction {
-//   client: any;
-//   done: () => void;
-//   begin: () => Promise<void>;
-//   commit: () => Promise<string>;
-//   rollback: () => Promise<string>;
-// }
-
-// interface QueryOption {
-//   transaction?: Transaction | null;
-// }
-
-// interface AggregateItem {
-//   function: 'count' | 'sum' | 'max' | 'min' | 'abs' | 'avg';
-//   field: string;
-//   name: string;
-// }
-
-// interface QueryParams {
-//   configs: { tableName: string };
-//   select?: string[];
-//   keyword?: Array<{
-//     key: string;
-//     value: any;
-//     logic?: 'and' | 'or';
-//     operator?: '=' | '>' | '<' | '<>' | '>=' | '<=' | 'in' | 'not in' | '%' | 'x%' | '%%' | 'is';
-//   }>;
-//   where?: any[];
-//   orderBy?: Record<string, 'ASC' | 'DESC'>;
-//   limit?: [number, number];
-//   aggregate?: AggregateItem[];
-// }
-
-// interface InsertParams {
-//   configs: { tableName: string };
-//   insertion: Record<string, any> | Array<Record<string, any>>;
-// }
-
-// interface UpdateParams extends QueryParams {
-//   update: Array<{
-//     key: string;
-//     value: any;
-//     operator?: 'replace' | 'plus' | 'reduce';
-//     case_field?: string;
-//     case_item?: Array<{
-//       case_value: any;
-//       value: any;
-//       operator?: 'replace' | 'plus' | 'reduce';
-//     }>;
-//   }>;
-// }
-
-// interface DeleteParams extends QueryParams {
-//   keyword?: any[];
-//   where?: any[];
-// }
 
 /**
  * PostgreSQL 单例操作管理器
@@ -341,7 +282,7 @@ class PostgreSQLActionManager extends BaseActionManager {
   /**
    * 更新
    */
-  static updateEntity(params: UpdateParameters, option: QueryOption = { transaction: null }): Promise<any> {
+  static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getUpdateParameters(params);
     let limitSql = '';
     if (params.limit) {

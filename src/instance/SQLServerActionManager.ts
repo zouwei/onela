@@ -5,8 +5,7 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarParameter from '../grammar/sqlserver.js';
-import type { FieldConfig, Transaction, QueryParams,QueryOption, UpdateParameters, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem,Parameter } from '../interface/onelaType.js';
-
+import type { FieldConfig, Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem,Parameter } from '../interface/onelaType.js';
 
 
 /**
@@ -342,7 +341,7 @@ class SQLServerActionManager extends BaseActionManager {
   /**
    * 更新
    */
-  static updateEntity(params: UpdateParameters, option: QueryOption = { transaction: null }): Promise<any> {
+  static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarParameter.getUpdateParameters(params);
     const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where}${p.limit};`;
 

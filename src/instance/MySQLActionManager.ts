@@ -2,69 +2,10 @@
  * MySQL 对象关系实例
  * 单例数据库操作管理者，负责 MySQL 的基本 CRUD
  */
-import mysql from 'mysql';
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarMysql from '../grammar/mysql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParameters, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
+import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
 
-
-
-// // === 类型定义 ===
-// interface Transaction {
-//   client: any;
-//   begin: () => Promise<void>;
-//   commit: () => Promise<string>;
-//   rollback: () => Promise<string>;
-// }
-
-// interface QueryOption {
-//   transaction?: Transaction | null;
-// }
-
-// interface AggregateItem {
-//   function: 'count' | 'sum' | 'max' | 'min' | 'abs' | 'avg';
-//   field: string;
-//   name: string;
-// }
-
-// interface QueryParams {
-//   configs: { tableName: string };
-//   select?: string[];
-//   keyword?: Array<{
-//     key: string;
-//     value: any;
-//     logic?: 'and' | 'or';
-//     operator?: '=' | '>' | '<' | '<>' | '>=' | '<=' | 'in' | 'not in' | '%' | 'x%' | '%%' | 'is';
-//   }>;
-//   where?: any[];
-//   orderBy?: Record<string, 'ASC' | 'DESC'>;
-//   limit?: [number, number];
-//   aggregate?: AggregateItem[];
-// }
-
-// interface InsertParams {
-//   configs: { tableName: string };
-//   insertion: Record<string, any> | Array<Record<string, any>>;
-// }
-
-// interface UpdateParams extends QueryParams {
-//   update: Array<{
-//     key: string;
-//     value: any;
-//     operator?: 'replace' | 'plus' | 'reduce';
-//     case_field?: string;
-//     case_item?: Array<{
-//       case_value: any;
-//       value: any;
-//       operator?: 'replace' | 'plus' | 'reduce';
-//     }>;
-//   }>;
-// }
-
-// interface DeleteParams extends QueryParams {
-//   keyword?: any[];
-//   where?: any[];
-// }
 
 /**
  * MySQL 单例操作管理器
@@ -76,7 +17,7 @@ class MySQLActionManager extends BaseActionManager {
    * 初始化连接池（单例）
    */
   static init(config: any): void {
-    // const mysql = require('mysql');
+    const mysql = require('mysql');
     const connPool = mysql.createPool(config);
     this.conn = connPool;
   }
@@ -331,7 +272,7 @@ class MySQLActionManager extends BaseActionManager {
   /**
    * 更新
    */
-  static updateEntity(params: UpdateParameters, option: QueryOption = { transaction: null }): Promise<any> {
+  static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getUpdateParameters(params);
     let limitSql = '';
     if (params.limit) {

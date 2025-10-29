@@ -8,63 +8,6 @@ import * as GrammarSqlite from '../grammar/sqlite.js';
 import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
 
 
-// // === 类型定义 ===
-// interface Transaction {
-//   client: any;
-//   begin: () => Promise<void>;
-//   commit: () => Promise<string>;
-//   rollback: () => Promise<string>;
-// }
-
-// interface QueryOption {
-//   transaction?: Transaction | null;
-// }
-
-// interface AggregateItem {
-//   function: 'count' | 'sum' | 'max' | 'min' | 'abs' | 'avg';
-//   field: string;
-//   name: string;
-// }
-
-// interface QueryParams {
-//   configs: { tableName: string };
-//   select?: string[];
-//   keyword?: Array<{
-//     key: string;
-//     value: any;
-//     logic?: 'and' | 'or';
-//     operator?: '=' | '>' | '<' | '<>' | '>=' | '<=' | 'in' | 'not in' | '%' | 'x%' | '%%' | 'is';
-//   }>;
-//   where?: any[];
-//   orderBy?: Record<string, 'ASC' | 'DESC'>;
-//   limit?: [number, number];
-//   aggregate?: AggregateItem[];
-// }
-
-// interface InsertParams {
-//   configs: { tableName: string };
-//   insertion: Record<string, any> | Array<Record<string, any>>;
-// }
-
-// interface UpdateParams extends QueryParams {
-//   update: Array<{
-//     key: string;
-//     value: any;
-//     operator?: 'replace' | 'plus' | 'reduce';
-//     case_field?: string;
-//     case_item?: Array<{
-//       case_value: any;
-//       value: any;
-//       operator?: 'replace' | 'plus' | 'reduce';
-//     }>;
-//   }>;
-// }
-
-// interface DeleteParams extends QueryParams {
-//   keyword?: any[];
-//   where?: any[];
-// }
-
 /**
  * SQLite 单例操作管理器
  */
