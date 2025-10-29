@@ -2,8 +2,7 @@ const { MySQLActionManager } = require("./instance/MySQLActionManager");
 const { PostgreSQLActionManager } = require("./instance/PostgreSQLActionManager");
 const { SQLiteActionManager } = require("./instance/SQLiteSQLActionManager");
 const { SQLServerActionManager } = require("./instance/SQLServerActionManager");
-// 老版本兼容
-const Old = require("./OFramework");
+
 
 /**
  * 负责多个database的管理，能够初始化数据库连接
@@ -497,4 +496,4 @@ OnelaBaseModel.configs = {
 
 // module.exports = BaseModelManager;
 
-module.exports = { Old, Onela, OnelaBaseModel };
+module.exports = {  Onela, OnelaBaseModel };
