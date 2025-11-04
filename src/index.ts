@@ -7,7 +7,7 @@ import { MySQLActionManager } from './instance/MySQLActionManager.js';
 import { PostgreSQLActionManager } from './instance/PostgreSQLActionManager.js';
 import { SQLiteActionManager } from './instance/SQLiteSQLActionManager.js';
 import { SQLServerActionManager } from './instance/SQLServerActionManager.js';
-import type { DatabaseConfig, Transaction, InsertParams, QueryOption, DeleteParams, AggregateItem, QueryParams, UpdateParams } from './interface/onelaType.js';
+import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, DeleteParams, AggregateItem, QueryParams, UpdateParams } from './interface/onelaType.js';
 
 // ActionManager 通用接口
 interface ActionManager {
@@ -16,11 +16,11 @@ interface ActionManager {
   queryEntity(params: any, option?: QueryOption): Promise<any>;
   queryEntityList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }>;
   queryWaterfallList(params: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }>;
-  insert(params: InsertParams & { configs: any }, option?: QueryOption): Promise<any>;
-  insertBatch(params: InsertParams & { configs: any }, option?: QueryOption): Promise<any>;
-  deleteEntity(params: DeleteParams & { configs: any }, option?: QueryOption): Promise<any>;
-  updateEntity(params: UpdateParams & { configs: any }, option?: QueryOption): Promise<any>;
-  statsByAggregate(params: QueryParams & { aggregate: AggregateItem[]; configs: any }, option?: QueryOption): Promise<any>;
+  insert(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  insertBatch(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  deleteEntity(params: DeleteParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  updateEntity(params: UpdateParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  statsByAggregate(params: QueryParams & { aggregate?: AggregateItem[]; configs: Configs }, option?: QueryOption): Promise<any>;
   streak?(sql: string, parameters?: any[], option?: QueryOption): Promise<any>;
 }
 
@@ -94,11 +94,13 @@ class Onela {
  */
 class OnelaBaseModel {
   protected static action_manager: Promise<ActionManager> | null = null;
-  protected static configs = {
-    fields: [] as any[],
-    tableName: '',
-    engine: 'default' as string,
-  };
+  protected static configs:Configs;
+  
+  // {
+  //   fields: [] as any[],
+  //   tableName: '',
+  //   engine: 'default' as string,
+  // };
 
   /**
    * 获取 ActionManager（延迟加载）
@@ -120,70 +122,70 @@ class OnelaBaseModel {
   /**
    * 查询单条
    */
-  static queryEntity(args: QueryParams, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs };
+  static queryOne(args: any, option?: QueryOption): Promise<any> {
+    const params = { ...args, configs: this.configs } as QueryParams;
     return this.getActionManager().then(am => am.queryEntity(params, option));
   }
 
   /**
    * 查询列表 + 总数
    */
-  static queryEntityList(args: QueryParams, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }> {
-    const params = { ...args, configs: this.configs };
+  static query(args: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }> {
+    const params = { ...args, configs: this.configs } as QueryParams;
     return this.getActionManager().then(am => am.queryEntityList(params, option));
   }
 
   /**
    * 瀑布流查询
    */
-  static queryWaterfallList(args: QueryParams, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }> {
-    const params = { ...args, configs: this.configs };
+  static queryList(args: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }> {
+    const params = { ...args, configs: this.configs } as QueryParams;
     return this.getActionManager().then(am => am.queryWaterfallList(params, option));
   }
 
   /**
    * 新增
    */
-  static insert(args: InsertParams, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs };
+  static insert(args: any, option?: QueryOption): Promise<any> {
+    const params = { ...args, configs: this.configs } as InsertParams;
     return this.getActionManager().then(am => am.insert(params, option));
   }
 
   /**
    * 批量新增
    */
-  static insertBatch(args: InsertParams, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs };
+  static inserts(args:  any, option?: QueryOption): Promise<any> {
+    const params = { ...args, configs: this.configs } as InsertParams;
     return this.getActionManager().then(am => am.insertBatch(params, option));
   }
 
   /**
    * 删除
    */
-  static deleteEntity(args: DeleteParams, option?: QueryOption): Promise<any> {
+  static delete(args: any, option?: QueryOption): Promise<any> {
     if ((!args.keyword || args.keyword.length === 0) && (!args.where || args.where.length === 0)) {
       return Promise.reject(new Error('paras.where delete condition (array) must exist condition'));
     }
-    const params = { ...args, configs: this.configs };
+    const params = { ...args, configs: this.configs } as DeleteParams;
     return this.getActionManager().then(am => am.deleteEntity(params, option));
   }
 
   /**
    * 更新
    */
-  static updateEntity(args: UpdateParams, option?: QueryOption): Promise<any> {
+  static update(args: any, option?: QueryOption): Promise<any> {
     if ((!args.keyword || args.keyword.length === 0) && (!args.where || args.where.length === 0)) {
       return Promise.reject(new Error('paras.where update condition (array) must exist condition'));
     }
-    const params = { ...args, configs: this.configs };
+    const params = { ...args, configs: this.configs } as UpdateParams;
     return this.getActionManager().then(am => am.updateEntity(params, option));
   }
 
   /**
    * 聚合统计
    */
-  static getEntityByAggregate(args: QueryParams & { aggregate: AggregateItem[] }, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs };
+  static aggregate(args: any & { aggregate: AggregateItem[] }, option?: QueryOption): Promise<any> {
+    const params = { ...args, configs: this.configs } as QueryParams;
     return this.getActionManager().then(am => am.statsByAggregate(params, option));
   }
 
@@ -202,3 +204,4 @@ class OnelaBaseModel {
 }
 
 export { Onela, OnelaBaseModel };
+export  type *  from './interface/onelaType.js';

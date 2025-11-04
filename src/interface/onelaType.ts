@@ -43,6 +43,12 @@ interface CallParas {
 
 // === 业务实例 ===
 
+interface Configs {
+    engine: string   // default
+    tableName: string
+    fields?: FieldConfig[];
+}
+
 interface FieldConfig {
   name: string;
   type: string;
@@ -122,10 +128,11 @@ interface AggregateItem {
  */
 interface QueryParams {
   command: Command;
-  configs: {
-    tableName: string;
-    fields?: FieldConfig[];
-  };
+  configs: Configs
+  // {
+  //   tableName: string;
+  //   fields?: FieldConfig[];
+  // };
   select?: string[];
   keyword?: Array<{
     key: string;
@@ -145,10 +152,11 @@ interface QueryParams {
  */
 interface InsertParams {
   command: Command;
-  configs: {
-    tableName: string;
-    fields?: FieldConfig[];
-  };
+  configs: Configs
+  // {
+  //   tableName: string;
+  //   fields?: FieldConfig[];
+  // };
   insertion: any[]; // 数组，数组内部是实体对象的字段
 }
 
@@ -197,7 +205,7 @@ interface Parameter {
 
 
 export type {
-    DatabaseConfig, DBSource, OODBC, Command, CallParas, ProcParam,
+    DatabaseConfig, DBSource, OODBC, Command, Configs, CallParas, ProcParam,
     FieldConfig,
     KeywordItem,
     QueryResult, 

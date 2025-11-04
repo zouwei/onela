@@ -2,7 +2,8 @@
  * MySQL 测试用例（TypeScript 版）
  */
 
-import { Onela, OnelaBaseModel } from '../dist/onela.js';
+import { Onela, OnelaBaseModel } from '../src/index.js';
+import type { Configs } from '../src/index.js';
 
 // === 数据库配置 ===
 const dbconfig = [
@@ -42,24 +43,24 @@ class ToDoManager extends OnelaBaseModel {
         default: () => new Date(),
       },
     ],
-  };
+  } as Configs;
 }
 
 /**
  * 事务测试
  */
-(async () => {
+
   const t = await ToDoManager.transaction();
 
   try {
     // 1. 新增
-    const insertRes = await ToDoManager.insertEntity(
+    const insertRes = await ToDoManager.insert(
       { content: '测试' },
       { transaction: t }
     );
 
     // 2. 更新刚插入的记录
-    await ToDoManager.updateEntity(
+    await ToDoManager.update(
       {
         update: [
           { key: 'content', value: '执行修改测试', operator: 'replace' },
@@ -79,12 +80,12 @@ class ToDoManager extends OnelaBaseModel {
     await t.rollback();
     console.log('事务已回滚');
   }
-})();
+
 
 /**
  * 单条查询
  */
-ToDoManager.getEntity({
+ToDoManager.queryOne({
   where: [
     // { logic: 'and', key: 'id', operator: '=', value: 1 },
   ],
@@ -95,14 +96,14 @@ ToDoManager.getEntity({
 /**
  * 新增
  */
-ToDoManager.insertEntity({ content: '测试' })
+ToDoManager.insert({ content: '测试' })
   .then(data => console.log('新增结果:', data))
   .catch(console.error);
 
 /**
  * 分页查询
  */
-ToDoManager.getEntityList({
+ToDoManager.query({
   where: [
     // { logic: 'and', key: 'id', operator: '=', value: 1 },
   ],
@@ -114,7 +115,7 @@ ToDoManager.getEntityList({
 /**
  * 瀑布流查询
  */
-ToDoManager.getEntityWaterfall({
+ToDoManager.queryList({
   where: [{ logic: 'and', key: 'valid', operator: '=', value: 1 }],
   orderBy: { id: 'DESC' },
   limit: [230, 10],
@@ -125,7 +126,7 @@ ToDoManager.getEntityWaterfall({
 /**
  * 批量新增
  */
-ToDoManager.insertBatch([
+ToDoManager.inserts([
   { content: '测试1' },
   { content: '测试2' },
   { content: '测试3' },
@@ -136,7 +137,7 @@ ToDoManager.insertBatch([
 /**
  * 物理删除
  */
-ToDoManager.deleteEntity({
+ToDoManager.delete({
   where: [
     { key: 'id', operator: 'in', value: [12360, 12361], logic: 'and' },
   ],
@@ -147,7 +148,7 @@ ToDoManager.deleteEntity({
 /**
  * 更新 + CASE WHEN
  */
-ToDoManager.updateEntity({
+ToDoManager.update({
   update: [
     { key: 'is_done', value: 1, operator: 'replace' },
     {
@@ -169,7 +170,7 @@ ToDoManager.updateEntity({
 /**
  * 聚合统计
  */
-ToDoManager.getEntityByAggregate({
+ToDoManager.aggregate({
   aggregate: [
     { function: 'count', field: 'is_done', name: 'undone_tasks' },
   ],

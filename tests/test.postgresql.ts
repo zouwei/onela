@@ -1,60 +1,63 @@
+import { Onela, OnelaBaseModel } from '../src/index.js';
+import type { Configs } from '../src/index.js';
+
 /**
  * 数据库配置，可以初始化多个数据库实例
  */
-let dbconfig = [{
-    "engine": "default",
-    "type": "PostgreSQL",           // 不区分大小写
-    "value": {
-        "port": 3432,
-        "host": "127.0.0.1",
-        "user": "test",
-        "password": "test&kjkdj9034",
-        "database": "test_db"
+const dbconfig = [
+  {
+    engine: "default",
+    type: "postgresql" as const,           // 不区分大小写
+    value: {
+        connectionLimit: 5,
+        host:"127.0.0.1",
+        user: "test",
+        port: 3432,
+        password: "test&kjkdj9034",
+        database: "test_db"
     }
-}];
+  }
+];
 
-const {Old, Onela, OnelaBaseModel} = require("../lib/onela");
-
-// 初始化Onela模块
+// === 初始化 Onela ===
 Onela.init(dbconfig);
+
 // 已经在OnelaBaseModel封装的常用方法，可以在此基础自行扩展
 
 class ToDoManager extends OnelaBaseModel {
     // 可以在此自定义扩展方法（默认封装没有的方法）
+    static fields = {
+        fields:[
+            {name: "id", type: "int", default: null, increment: true},
+            {name: "content", type: "varchar"},
+            {name: "is_done", type: "int", default: 0},
+            {
+                name: "create_time", type: "datetime", default: () => {
+                return new Date()
+            }
+            },
+            {
+                name: "finish_time", type: "datetime",  default: () => {
+                return new Date()
+            }
+            }
+        ],
+        tableName: "todos",
+        engine: "default"
+    }  as Configs;
 }
-
-// 【重要】单例模式，数据表配置
-ToDoManager.configs = {
-    fields: [
-        {name: "id", type: "int", default: null, increment: true},
-        {name: "content", type: "varchar"},
-        {name: "is_done", type: "int", default: 0},
-        {
-            name: "create_time", type: "datetime", default: () => {
-            return new Date()
-        }
-        },
-        {
-            name: "finish_time", type: "datetime", default: null, default: () => {
-            return new Date()
-        }
-        }
-    ],
-    tableName: "todos",
-    engine: "default"
-};
 
 /**
  * 事务
  */
 ToDoManager.transaction().then(t => {
     // 先新增一条记录
-    ToDoManager.insertEntity({
+    ToDoManager.insert({
         "content": "测试事务"
     }, {transaction: t})
         .then(data => {
             // 再对新增的记录执行修改
-            return ToDoManager.updateEntity({
+            return ToDoManager.update({
                 "update": [
                     {"key": "content", "value": "事务修改", "operator": "replace"}    // 修改了content字段
                 ],
@@ -81,7 +84,7 @@ ToDoManager.transaction().then(t => {
 /**
  * 单例模式：新增
  */
-ToDoManager.insertEntity({
+ToDoManager.insert({
     "content": "测试"
 }).then(data => {
     console.log('查询结果', data)
@@ -91,13 +94,13 @@ ToDoManager.insertEntity({
 /**
  * 单例模式：数据查询
  */
-ToDoManager.getEntity({
+ToDoManager.queryOne({
     where: [
         {"logic": "and", "key": "id", "operator": "=", "value": 6},
         {"logic": "and", "key": "id", "operator": "=", "value": 6},
         {"logic": "and", "key": "id", "operator": "in", "value": [4, 6]}
     ]
-}, null).then(data => {
+}).then(data => {
     console.log('查询结果', data)
 }).then();
 
@@ -105,7 +108,7 @@ ToDoManager.getEntity({
 /**
  * 单例模式：分页查询
  */
-ToDoManager.getEntityList({
+ToDoManager.query({
     "where": [
         {"logic": "and", "key": "id", "operator": "=", "value": 2}
     ]
@@ -114,7 +117,7 @@ ToDoManager.getEntityList({
 /**
  * 获取数据瀑布
  */
-ToDoManager.getEntityWaterfall({
+ToDoManager.queryList({
     "where": [
         // {"logic": "and", "key": "valid", "operator": "=", "value": 1}
     ],
@@ -124,7 +127,7 @@ ToDoManager.getEntityWaterfall({
 /**
  * 单例模式：批量新增
  */
-ToDoManager.insertBatch([
+ToDoManager.inserts([
     {content: "测试1"},
     {content: "测试2"},
     {content: "测试3"}
@@ -133,7 +136,7 @@ ToDoManager.insertBatch([
 /**
  * 单例模式：删除（物理删除，不推荐使用）
  */
-ToDoManager.deleteEntity({
+ToDoManager.delete({
     "where": [
         {"key": "id", operator: "in", value: [9, 10], logic: "and"},
         // {"key": "is_done", operator: "=", value: 1, logic: "and"}
@@ -143,7 +146,7 @@ ToDoManager.deleteEntity({
 /**
  * 单例模式：更新（对于删除，建议使用逻辑删除）
  */
-ToDoManager.updateEntity({
+ToDoManager.update({
     update: [
         {key: "is_done", value: 1, operator: "replace"},
         {
@@ -163,7 +166,7 @@ ToDoManager.updateEntity({
 /**
  * 单例模式：实时统计
  */
-ToDoManager.getEntityByAggregate({
+ToDoManager.aggregate({
     // where:
     "aggregate": [
         {"function": "count", "field": "is_done", "name": "undone_tasks"},
