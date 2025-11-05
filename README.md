@@ -4,7 +4,8 @@
 >
 > tips：4文件纯净包/400kb
 
-[![npm](https://img.shields.io/npm/v/onela?color=success)](https://npmjs.com/package/onela)[![Downloads](https://img.shields.io/npm/dm/onela.svg?color=blue)](https://www.npmjs.com/package/onela)
+[![npm](https://img.shields.io/npm/v/onela?color=success)](https://npmjs.com/package/onela)
+[![Downloads](https://img.shields.io/npm/dm/onela.svg?color=blue)](https://www.npmjs.com/package/onela)
 
 ### TS版本：v3.0版本发布
 
