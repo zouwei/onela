@@ -1,13 +1,10 @@
 # Onela 一套业务代码无缝接入多种类型数据库
 
 > 基于nodejs 开源ORM框架，旨在实现一套业务代码无缝对接不同类型的数据库实现接入。
+>
+> tips：4文件纯净包/400kb
 
-
-
-[![NPM version](https://img.shields.io/npm/v/onela.svg)](https://www.npmjs.com/package/onela)
-[![Downloads](https://img.shields.io/npm/dm/onela.svg)](https://www.npmjs.com/package/onela)
-
-
+[![npm](https://img.shields.io/npm/v/onela?color=success)](https://npmjs.com/package/onela)[![Downloads](https://img.shields.io/npm/dm/onela.svg?color=blue)](https://www.npmjs.com/package/onela)
 
 ### TS版本：v3.0版本发布
 
