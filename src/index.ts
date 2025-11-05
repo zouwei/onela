@@ -204,4 +204,3 @@ class OnelaBaseModel {
 }
 
 export { Onela, OnelaBaseModel };
-export  type *  from './interface/onelaType.js';

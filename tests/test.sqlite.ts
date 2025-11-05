@@ -1,5 +1,5 @@
 import { Onela, OnelaBaseModel } from '../src/index.js';
-import type { Configs } from '../src/index.js';
+import type { Configs } from '../src/index.js.js';
 
 /**
  * SQLite数据库实例

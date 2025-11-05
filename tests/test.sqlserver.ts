@@ -1,5 +1,5 @@
 import { Onela, OnelaBaseModel } from '../src/index.js';
-import type { Configs } from '../src/index.js';
+import type { Configs } from '../src/index.js.js';
 
 /**
  * 数据库配置，可以初始化多个数据库实例

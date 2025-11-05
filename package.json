@@ -1,6 +1,6 @@
 {
   "name": "onela",
-  "version": "3.0.0",
+  "version": "3.0.2-beta.6",
   "description": "Based on the Node.js open-source ORM framework, it aims to enable seamless integration of a single set of business code with different types of databases.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -17,6 +17,7 @@
     "dist"
   ],
   "scripts": {
+    "clean": "rm dist/* -Force 2>nul || del dist\\* 2>nul && rm node_modules\\.cache -Recurse -Force 2>nul",
     "test": "jest",
     "build": "rollup -c"
   },
@@ -52,6 +53,7 @@
     "copyfiles": "^2.4.1",
     "rollup": "^4.52.5",
     "terser": "^5.44.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
