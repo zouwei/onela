@@ -1,5 +1,5 @@
 node_modules
 src
-rollup.config.js
+rollup.config.ts
 tsconfig.json
 *.log
