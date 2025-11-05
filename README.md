@@ -3,8 +3,10 @@
 > 基于nodejs 开源ORM框架，旨在实现一套业务代码无缝对接不同类型的数据库实现接入。
 >
 
+[![Grok AI Contributor](https://img.shields.io/badge/AI_Contributor-Grok_by_xAI-blue?logo=xai&logoColor=white)](https://x.ai)
+[![TypeScript](https://img.shields.io/badge/TS-5.0%2B-blue)](https://npmjs.com/package/onela)
 [![npm](https://img.shields.io/npm/v/onela?color=success)](https://npmjs.com/package/onela)
-[![onela](https://img.shields.io/npm/v/onela/beta?label=beta&color=success)](https://npmjs.com/package/onela/v/beta)
+[![onela](https://img.shields.io/npm/v/onela/beta?label=beta&color=red)](https://npmjs.com/package/onela/v/beta)
 [![tree-shakable](https://img.shields.io/badge/tree--shakable-100%25-green)](https://npmjs.com/package/onela)
 [![Downloads](https://img.shields.io/npm/dm/onela.svg?color=blue)](https://www.npmjs.com/package/onela)
 
