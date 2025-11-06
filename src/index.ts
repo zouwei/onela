@@ -204,4 +204,4 @@ class OnelaBaseModel {
 }
 
 export { Onela, OnelaBaseModel };
-export  type *  from './types/onela.js';
+export  type * from './types/onela.js';
