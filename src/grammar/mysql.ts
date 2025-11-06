@@ -1,4 +1,4 @@
-import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../interface/onelaType.js';
+import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../types/onela.js';
 
 // /**
 //  * 通用模块 - 命令行参数处理（MySQL 版）

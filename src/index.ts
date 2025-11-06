@@ -7,7 +7,7 @@ import { MySQLActionManager } from './instance/MySQLActionManager.js';
 import { PostgreSQLActionManager } from './instance/PostgreSQLActionManager.js';
 import { SQLiteActionManager } from './instance/SQLiteSQLActionManager.js';
 import { SQLServerActionManager } from './instance/SQLServerActionManager.js';
-import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, DeleteParams, AggregateItem, QueryParams, UpdateParams } from './interface/onelaType.js';
+import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, DeleteParams, AggregateItem, QueryParams, UpdateParams } from './types/onela.js';
 
 // ActionManager 通用接口
 interface ActionManager {
@@ -204,3 +204,4 @@ class OnelaBaseModel {
 }
 
 export { Onela, OnelaBaseModel };
+export  type *  from './types/onela.js';

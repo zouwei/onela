@@ -1,4 +1,4 @@
-import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../interface/onelaType.js';
+import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../types/onela.js';
 
 // /**
 //  * SQLite - 命令行参数处理

@@ -6,7 +6,7 @@
  */
 
 import * as mysqlGrammar from './grammar/mysql.js';
-import type { DBSource, OODBC, Command, CallParas, ProcParam,Transaction, QueryParams,QueryOption , UpdateParams,  UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from './interface/onelaType.js';
+import type { DBSource, OODBC, Command, CallParas, ProcParam,Transaction, QueryParams,QueryOption , UpdateParams,  UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from './types/onela.js';
 
 
 

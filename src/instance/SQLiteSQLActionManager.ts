@@ -5,7 +5,7 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarSqlite from '../grammar/sqlite.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
+import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
 
 
 /**

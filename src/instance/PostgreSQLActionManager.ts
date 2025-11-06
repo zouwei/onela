@@ -5,7 +5,7 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarPostgres from '../grammar/postgresql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateResult , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
+import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateResult , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
 
 
 /**

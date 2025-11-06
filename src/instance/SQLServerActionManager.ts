@@ -5,7 +5,7 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarParameter from '../grammar/sqlserver.js';
-import type { FieldConfig, Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem,Parameter } from '../interface/onelaType.js';
+import type { FieldConfig, Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem,Parameter } from '../types/onela.js';
 
 
 /**

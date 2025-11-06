@@ -4,7 +4,7 @@
  */
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarMysql from '../grammar/mysql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../interface/onelaType.js';
+import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
 
 
 /**

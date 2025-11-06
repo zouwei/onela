@@ -49,9 +49,21 @@ interface Configs {
     fields?: FieldConfig[];
 }
 
+/**
+ * 字段类型
+ */
 interface FieldConfig {
-  name: string;
-  type: string;
+    name: string;
+    type: string 
+      | 'varchar'
+      | 'nvarchar'
+      | 'json'
+      | 'blob'
+      | 'datetime'
+      | 'tinyint';
+    default: string | number | null;
+    comment: string;
+    primary?: true;
 }
 
 interface KeywordItem {

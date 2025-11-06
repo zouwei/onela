@@ -1,4 +1,4 @@
-import type { KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField , DeleteParams} from '../interface/onelaType.js';
+import type { KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField , DeleteParams} from '../types/onela.js';
 
 
 /**
