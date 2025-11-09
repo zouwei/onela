@@ -4,6 +4,8 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';   // 正确！
 
+const external = ['pg', 'mysql', 'sqlite3', 'tedious'];
+
 export default {
   input: 'src/index.ts',
   output: [
@@ -23,5 +25,6 @@ export default {
     commonjs(),
     typescript({ tsconfig: './tsconfig.json' }),
     terser()                     // 直接调用
-  ]
+  ],
+  external
 };
