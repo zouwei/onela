@@ -5,22 +5,75 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarPostgres from '../grammar/postgresql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateResult , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
-
+import type {
+  Transaction,
+  QueryParams,
+  QueryOption,
+  UpdateParams,
+  UpdateResult,
+  UpdateCaseItem,
+  UpdateCaseField,
+  InsertParams,
+  DeleteParams,
+  AggregateItem
+} from '../types/onela.js';
 
 /**
  * PostgreSQL 单例操作管理器
+ * 支持动态注入 pg 模块或 Pool 实例（不强制依赖）
  */
 class PostgreSQLActionManager extends BaseActionManager {
-  private static conn: any;
+  private static conn: any = null;
 
   /**
    * 初始化连接池（单例）
+   * 支持三种方式：
+   * 1. 传入 { Pool } 对象
+   * 2. 传入 Pool 类
+   * 3. 传入已创建的 Pool 实例
+   * 4. 无参数 → 动态 import('pg')
    */
-  static init(config: any): void {
-    const { Pool } = require('pg');
-    const connPool = new Pool(config);
-    this.conn = connPool;
+  static init(config: any, pgModuleOrPool?: any): void | Promise<void> {
+    let Pool: any;
+
+    // 情况1: 传入 pg 模块 { Pool }
+    if (pgModuleOrPool?.Pool) {
+      Pool = pgModuleOrPool.Pool;
+    }
+    // 情况2: 传入 Pool 类
+    else if (typeof pgModuleOrPool === 'function' && pgModuleOrPool.prototype?.connect) {
+      Pool = pgModuleOrPool;
+    }
+    // 情况3: 传入已创建的 Pool 实例
+    else if (pgModuleOrPool?.connect && pgModuleOrPool?.query) {
+      this.conn = pgModuleOrPool;
+      return;
+    }
+
+    // 情况4: 动态导入 pg
+    if (!Pool) {
+      return import('pg')
+        .then((module) => {
+          Pool = module.Pool;
+          const pool = new Pool(config);
+          this.conn = pool;
+        })
+        .catch((err) => {
+          console.error('Failed to import pg. Please install it: npm install pg');
+          throw new Error('pg module not found. Install it in your project: npm install pg');
+        });
+    }
+
+    // 使用传入的 Pool 类创建实例
+    const pool = new Pool(config);
+    this.conn = pool;
+  }
+
+  /**
+   * 强制设置 Pool 实例（测试/高级用法）
+   */
+  static setPoolInstance(pool: any): void {
+    this.conn = pool;
   }
 
   /**
@@ -31,134 +84,119 @@ class PostgreSQLActionManager extends BaseActionManager {
 
     return new Promise((resolve, reject) => {
       if (!self.conn) {
-        return reject(new Error('Connection pool not initialized'));
+        return reject(new Error('Connection pool not initialized. Call PostgreSQLActionManager.init() first.'));
       }
 
-      self.conn.connect((err: any, client: any, done: () => void) => {
-        if (err) {
-          console.error('An exception occurred when creating a transaction connection', err);
-          return reject(new Error('An exception occurred when creating a transaction connection'));
-        }
+      // 兼容 Promise 和回调两种风格
+      const connectResult = self.conn.connect();
 
-        const transaction: Partial<Transaction> = { client};
-
-        // 开始事务
-        transaction.begin = () => {
-          return new Promise((res, rej) => {
-            client.query('BEGIN', (ex: any) => {
-              if (ex) {
-                client.query('ROLLBACK', (err: any) => {
-                  console.error('Transaction exception!', err);
-                  rej(new Error('Transaction exception!'));
-                });
-              } else {
-                res();
-              }
-            });
-          });
-        };
-
-        // 提交事务
-        transaction.commit = () => {
-          return new Promise<string>((res, rej) => {
-            client.query('COMMIT', (err: any) => {
-              if (err) {
-                console.error('Error committing transaction', err.stack);
-                rej(err);
-              } else {
-                done();
-                res('Transaction submitted successfully!');
-              }
-            });
-          });
-        };
-
-        // 回滚事务
-        transaction.rollback = () => {
-          return new Promise<string>((res, rej) => {
-            client.query('ROLLBACK', (err: any) => {
-              if (err) {
-                console.error('Error rolling back client', err.stack);
-                rej(new Error('Error rolling back client ' + err.stack));
-              } else {
-                done();
-                res('Transaction rolled back!');
-              }
-            });
-          });
-        };
-
-        resolve(transaction as Transaction);
-      });
+      if (connectResult && typeof connectResult.then === 'function') {
+        // Promise 风格
+        connectResult
+          .then((client: any) => {
+            resolve(self.buildTransaction(client));
+          })
+          .catch(reject);
+      } else {
+        // 回调风格
+        self.conn.connect((err: any, client: any, done: () => void) => {
+          if (err) {
+            console.error('Error creating transaction connection', err);
+            return reject(new Error('Failed to create transaction connection'));
+          }
+          resolve(self.buildTransaction(client, done));
+        });
+      }
     });
+  }
+
+  /**
+   * 构建事务对象
+   */
+  private static buildTransaction(client: any, done?: () => void): Transaction {
+    const transaction: Partial<Transaction> = { client };
+
+    transaction.begin = () => {
+      return new Promise<void>((res, rej) => {
+        client.query('BEGIN', (err: any) => {
+          if (err) {
+            client.query('ROLLBACK', () => {});
+            rej(new Error('Transaction BEGIN failed'));
+          } else {
+            res();
+          }
+        });
+      });
+    };
+
+    transaction.commit = () => {
+      return new Promise<string>((res, rej) => {
+        client.query('COMMIT', (err: any) => {
+          if (err) {
+            console.error('COMMIT error', err);
+            rej(err);
+          } else {
+            done?.();
+            res('Transaction committed');
+          }
+        });
+      });
+    };
+
+    transaction.rollback = () => {
+      return new Promise<string>((res, rej) => {
+        client.query('ROLLBACK', (err: any) => {
+          if (err) {
+            console.error('ROLLBACK error', err);
+            rej(new Error('ROLLBACK failed: ' + err.message));
+          } else {
+            done?.();
+            res('Transaction rolled back');
+          }
+        });
+      });
+    };
+
+    return transaction as Transaction;
   }
 
   /**
    * 执行 SQL（连接池）
    */
   private static execute(sql: string, parameters: any[] = []): Promise<any> {
-    const self = this;
-    return new Promise((resolve, reject) => {
-      if (self.conn) {
-        const query = { text: sql, values: parameters };
-        self.conn.query(query, (err: any, result: any) => {
-          if (err) reject(err);
-          else resolve(result);
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
-    });
+    if (!this.conn) {
+      throw new Error('Database not initialized');
+    }
+    return this.conn.query({ text: sql, values: parameters });
   }
 
   /**
    * 执行事务 SQL
    */
   private static executeTransaction(sql: string, parameters: any[], transaction: Transaction): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (transaction && transaction.client) {
-        const query = { text: sql, values: parameters };
-        transaction.client.query(query, (err: any, result: any) => {
-          if (err) {
-            console.error('Execution transaction exception!', err);
-            reject(err);
-          } else {
-            resolve(result);
-          }
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
-    });
+    if (!transaction?.client) {
+      throw new Error('Invalid transaction');
+    }
+    return transaction.client.query({ text: sql, values: parameters });
   }
 
-  /**
-   * 查询单条记录
-   */
+  // ====================== CRUD 方法 ======================
+
   static queryEntity(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
 
-    if (option.transaction) {
-      return this.executeTransaction(sql, p.parameters!, option.transaction)
-        .then(result => result.rows[0] || null)
-        .catch(err => {
-          console.log('Error when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    } else {
-      return this.execute(sql, p.parameters)
-        .then(result => result.rows[0] || null)
-        .catch(err => {
-          console.error('Error when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, p.parameters!, option.transaction)
+      : this.execute(sql, p.parameters)
+    )
+      .then((result: any) => result.rows[0] || null)
+      .catch((err) => {
+        console.error('Query entity error:', err);
+        return Promise.reject(err);
+      });
   }
 
-  /**
-   * 分页查询 + 总数
-   */
   static queryEntityList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarPostgres.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
@@ -171,20 +209,17 @@ class PostgreSQLActionManager extends BaseActionManager {
     return Promise.all([
       exec(sql, p.parameters),
       exec(countSql, p.parameters),
-    ]).then(([dataRes, countRes]) => {
-      return {
+    ])
+      .then(([dataRes, countRes]) => ({
         data: dataRes.rows,
         recordsTotal: countRes.rows[0]?.total ?? 0,
-      };
-    }).catch(err => {
-      console.log('Error when executing execute query data list', err);
-      return Promise.reject(err);
-    });
+      }))
+      .catch((err) => {
+        console.error('Query list error:', err);
+        return Promise.reject(err);
+      });
   }
 
-  /**
-   * 瀑布流查询（判断末尾）
-   */
   static queryWaterfallList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
@@ -196,22 +231,21 @@ class PostgreSQLActionManager extends BaseActionManager {
       ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)
       : this.execute.bind(this);
 
-    return exec(sql, p.parameters).then(result => {
-      const rows = result.rows;
-      const isLastPage = rows.length <= limit[1];
-      return {
-        data: isLastPage ? rows : rows.slice(0, -1),
-        isLastPage,
-      };
-    }).catch(err => {
-      console.error('Error when executing execute query data list', err);
-      return Promise.reject(err);
-    });
+    return exec(sql, p.parameters)
+      .then((result: any) => {
+        const rows = result.rows;
+        const isLastPage = rows.length <= limit[1];
+        return {
+          data: isLastPage ? rows : rows.slice(0, -1),
+          isLastPage,
+        };
+      })
+      .catch((err) => {
+        console.error('Waterfall query error:', err);
+        return Promise.reject(err);
+      });
   }
 
-  /**
-   * 新增
-   */
   static insert(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const insertion = params.insertion as Record<string, any>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
@@ -226,18 +260,12 @@ class PostgreSQLActionManager extends BaseActionManager {
 
     const sql = `INSERT INTO ${params.configs.tableName} (${f.join(', ')}) VALUES (${s.join(', ')});`;
 
-    const executeFn = option.transaction
-      ? () => this.executeTransaction(sql, p, option.transaction!)
-      : () => this.execute(sql, p);
-
-    return executeFn().then(data => {
-      return { ...insertion, _returns: data };
-    });
+    return (option.transaction
+      ? this.executeTransaction(sql, p, option.transaction)
+      : this.execute(sql, p)
+    ).then((data: any) => ({ ...insertion, _returns: data }));
   }
 
-  /**
-   * 批量新增
-   */
   static insertBatch(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const list = params.insertion as Array<Record<string, any>>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
@@ -246,7 +274,6 @@ class PostgreSQLActionManager extends BaseActionManager {
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
       const s2: string[] = [];
-
       for (const key in item) {
         if (i === 0) f.push(key);
         index++;
@@ -263,12 +290,9 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p);
   }
 
-  /**
-   * 物理删除
-   */
   static deleteEntity(params: DeleteParams, option: QueryOption = { transaction: null }): Promise<any> {
     if ((!params.keyword || params.keyword.length === 0) && (!params.where || params.where.length === 0)) {
-      return Promise.reject('Deletion conditions need to be specified to prevent the entire table data from being accidentally deleted.');
+      return Promise.reject('Deletion conditions required to prevent full table deletion.');
     }
 
     const p = GrammarPostgres.getDeleteParameters(params);
@@ -279,9 +303,6 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters);
   }
 
-  /**
-   * 更新
-   */
   static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getUpdateParameters(params);
     let limitSql = '';
@@ -297,21 +318,14 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters);
   }
 
-  /**
-   * 聚合统计
-   */
   static statsByAggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getParameters(params);
-    const check: Record<string, string> = {
-      count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG',
-    };
+    const check: Record<string, string> = { count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG' };
     const show: string[] = [];
 
     for (const agg of params.aggregate) {
       const fn = check[agg.function.toLowerCase()];
-      if (fn) {
-        show.push(`${fn}(${agg.field}) AS ${agg.name}`);
-      }
+      if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
     const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
@@ -320,28 +334,19 @@ class PostgreSQLActionManager extends BaseActionManager {
       ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)
       : this.execute.bind(this);
 
-    return exec(sql, p.parameters).then(result => result.rows);
+    return exec(sql, p.parameters!).then((result: any) => result.rows);
   }
 
-  /**
-   * 自定义 SQL（谨慎使用）
-   */
   static streak(sql: string, parameters: any[] = [], option: QueryOption = { transaction: null }): Promise<any> {
-    if (option.transaction) {
-      return this.executeTransaction(sql, parameters, option.transaction)
-        .then(result => result.rows)
-        .catch(err => {
-          console.error('Exception when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    } else {
-      return this.execute(sql, parameters)
-        .then(result => result.rows)
-        .catch(err => {
-          console.error('Exception when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, parameters, option.transaction)
+      : this.execute(sql, parameters)
+    )
+      .then((result: any) => result.rows)
+      .catch((err) => {
+        console.error('Custom SQL error:', err);
+        return Promise.reject(err);
+      });
   }
 }
 

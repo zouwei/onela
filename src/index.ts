@@ -11,7 +11,7 @@ import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, D
 
 // ActionManager 通用接口
 interface ActionManager {
-  init(config: any): void;
+  init(config: any, oduleOrPool?: any): void;
   createTransaction(): Promise<Transaction>;
   queryEntity(params: any, option?: QueryOption): Promise<any>;
   queryEntityList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }>;

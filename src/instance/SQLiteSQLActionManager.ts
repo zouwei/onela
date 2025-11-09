@@ -5,81 +5,126 @@
 
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarSqlite from '../grammar/sqlite.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
-
+import type {
+  Transaction,
+  QueryParams,
+  QueryOption,
+  UpdateParams,
+  UpdateFieldItem,
+  UpdateCaseItem,
+  UpdateCaseField,
+  InsertParams,
+  DeleteParams,
+  AggregateItem
+} from '../types/onela.js';
 
 /**
  * SQLite 单例操作管理器
+ * 支持动态注入 sqlite3 模块或 Database 实例（不强制依赖）
  */
 class SQLiteActionManager extends BaseActionManager {
-  private static conn: any;
-  private static host: string;
+  private static conn: any = null;
+  private static host: string = '';
 
   /**
    * 初始化数据库（单例）
+   * 支持：
+   * 1. 传入 sqlite3 模块 { Database, verbose }
+   * 2. 传入 Database 类
+   * 3. 传入已创建的 Database 实例
+   * 4. 无参数 → 动态 import('sqlite3')
    */
-  static init(config: { host: string }): void {
-    const SQLite3 = require('sqlite3').verbose();
-    this.host = config.host;
+  static init(config: { host: string }, sqlite3ModuleOrDb?: any): void | Promise<void> {
+    let SQLite3: any;
 
+    // 情况1: 传入 sqlite3 模块 { Database, verbose }
+    if (sqlite3ModuleOrDb?.Database && sqlite3ModuleOrDb?.verbose) {
+      SQLite3 = sqlite3ModuleOrDb.verbose();
+    }
+    // 情况2: 传入 Database 类
+    else if (typeof sqlite3ModuleOrDb === 'function' && sqlite3ModuleOrDb.prototype?.run) {
+      SQLite3 = sqlite3ModuleOrDb;
+    }
+    // 情况3: 传入已创建的 Database 实例
+    else if (sqlite3ModuleOrDb?.run && sqlite3ModuleOrDb?.get && sqlite3ModuleOrDb?.all) {
+      this.conn = sqlite3ModuleOrDb;
+      this.host = config.host;
+      return;
+    }
+
+    // 情况4: 动态导入 sqlite3
+    if (!SQLite3) {
+      return import('sqlite3')
+        .then((module) => {
+          SQLite3 = module.verbose();
+          this.host = config.host;
+          this.conn = new SQLite3.Database(config.host, (err: any) => {
+            if (err) {
+              console.error('SQLite connection failed:', err);
+            } else {
+              console.log('SQLite connected:', config.host);
+            }
+          });
+        })
+        .catch((err) => {
+          console.error('Failed to import sqlite3. Please install it: npm install sqlite3');
+          throw new Error('sqlite3 module not found. Install it: npm install sqlite3');
+        });
+    }
+
+    // 使用传入的 SQLite3 类创建实例
+    this.host = config.host;
     this.conn = new SQLite3.Database(config.host, (err: any) => {
       if (err) {
-        console.log('SQLite database connection exception', err);
+        console.error('SQLite connection failed:', err);
       } else {
-        console.log('SQLite database connection successful');
+        console.log('SQLite connected:', config.host);
       }
     });
   }
 
   /**
-   * 连接数据库（延迟初始化）
+   * 强制设置 Database 实例（测试/高级用法）
    */
-  private static connectDataBase(): Promise<any> {
-    const self = this;
-    return new Promise((resolve, reject) => {
-      if (!self.conn) {
-        const SQLite3 = require('sqlite3').verbose();
-        self.conn = new SQLite3.Database(self.host, (err: any) => {
-          if (err) reject(new Error(err));
-          else resolve(self.conn);
-        });
-      } else {
-        resolve(self.conn);
-      }
-    });
+  static setDatabaseInstance(db: any): void {
+    this.conn = db;
   }
 
   /**
-   * 创建事务连接（共享单例连接）
+   * 创建事务连接（SQLite 事务基于单连接）
    */
   static createTransaction(): Promise<Transaction> {
-    const self = this;
-
     return new Promise((resolve, reject) => {
-      if (!self.conn) {
-        return reject(new Error('SQLite connection not initialized'));
+      if (!this.conn) {
+        return reject(new Error('SQLite not initialized. Call SQLiteActionManager.init() first.'));
       }
 
-      const transaction: Partial<Transaction> = { client: self.conn };
+      const transaction: Partial<Transaction> = { client: this.conn };
 
       transaction.begin = () => {
-        return new Promise<void>((res) => {
-          transaction.client!.run('BEGIN');
-          res();
+        return new Promise<void>((res, rej) => {
+          this.conn.run('BEGIN', (err: any) => {
+            if (err) rej(err);
+            else res();
+          });
         });
       };
 
       transaction.commit = () => {
-        return new Promise<string>((res) => {
-          transaction.client!.run('COMMIT');
-          res('Transaction submitted successfully');
+        return new Promise<string>((res, rej) => {
+          this.conn.run('COMMIT', (err: any) => {
+            if (err) rej(err);
+            else res('Transaction committed');
+          });
         });
       };
 
       transaction.rollback = () => {
-        return new Promise<string>((res) => {
-          transaction.client!.run('ROLLBACK');
-          res('Transaction rolled back');
+        return new Promise<string>((res, rej) => {
+          this.conn.run('ROLLBACK', (err: any) => {
+            if (err) rej(err);
+            else res('Transaction rolled back');
+          });
         });
       };
 
@@ -90,71 +135,63 @@ class SQLiteActionManager extends BaseActionManager {
   /**
    * 执行 SQL（自动选择 run/get/all）
    */
-  private static execute(sql: string, parameters: any[] = [], mode: 'run' | 'get' | 'all' = 'run'): Promise<any> {
-    const self = this;
+  private static execute(
+    sql: string,
+    parameters: any[] = [],
+    mode: 'run' | 'get' | 'all' = 'run'
+  ): Promise<any> {
+    if (!this.conn) {
+      throw new Error('SQLite not initialized');
+    }
+
     return new Promise((resolve, reject) => {
-      if (self.conn) {
-        console.time('【onela】SQL execution time');
-        self.conn[mode](sql, parameters, function (err: any, data: any) {
-          console.timeEnd('【onela】SQL execution time');
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data !== undefined ? data : 'success');
-          }
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
+      console.time('【onela】SQL execution time');
+      this.conn[mode](sql, parameters, function (this: any, err: any, data: any) {
+        console.timeEnd('【onela】SQL execution time');
+        if (err) reject(err);
+        else resolve(data !== undefined ? data : 'success');
+      });
     });
   }
 
   /**
    * 执行事务 SQL
    */
-  private static executeTransaction(sql: string, parameters: any[], transaction: Transaction, mode: 'run' | 'get' | 'all' = 'run'): Promise<any> {
+  private static executeTransaction(
+    sql: string,
+    parameters: any[],
+    transaction: Transaction,
+    mode: 'run' | 'get' | 'all' = 'run'
+  ): Promise<any> {
+    if (!transaction?.client) {
+      throw new Error('Invalid transaction');
+    }
+
     return new Promise((resolve, reject) => {
-      if (transaction && transaction.client) {
-        console.time('【onela】SQL execution time');
-        transaction.client[mode](sql, parameters, function (err: any, data: any) {
-          console.timeEnd('【onela】SQL execution time');
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data !== undefined ? data : 'success');
-          }
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
+      console.time('【onela】SQL execution time');
+      transaction.client[mode](sql, parameters, function (this: any, err: any, data: any) {
+        console.timeEnd('【onela】SQL execution time');
+        if (err) reject(err);
+        else resolve(data !== undefined ? data : 'success');
+      });
     });
   }
 
-  /**
-   * 查询单条记录
-   */
+  // ====================== CRUD 方法 ======================
+
   static queryEntity(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarSqlite.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
 
-    if (option.transaction) {
-      return this.executeTransaction(sql, p.parameters!, option.transaction, 'get')
-        .catch(err => {
-          console.log('Error when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    } else {
-      return this.execute(sql, p.parameters, 'get')
-        .catch(err => {
-          console.error('Error when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, p.parameters!, option.transaction, 'get')
+      : this.execute(sql, p.parameters, 'get')
+    ).catch((err) => {
+      console.error('Query entity error:', err);
+      return Promise.reject(err);
+    });
   }
 
-  /**
-   * 分页查询 + 总数
-   */
   static queryEntityList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarSqlite.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
@@ -167,20 +204,17 @@ class SQLiteActionManager extends BaseActionManager {
     return Promise.all([
       exec(sql, p.parameters!, 'all'),
       exec(countSql, p.parameters!, 'get'),
-    ]).then(([data, count]) => {
-      return {
+    ])
+      .then(([data, count]) => ({
         data,
         recordsTotal: count?.total ?? 0,
-      };
-    }).catch(err => {
-      console.log('Error when executing execute query data list', err);
-      return Promise.reject(err);
-    });
+      }))
+      .catch((err) => {
+        console.error('Query list error:', err);
+        return Promise.reject(err);
+      });
   }
 
-  /**
-   * 瀑布流查询（判断末尾）
-   */
   static queryWaterfallList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
@@ -188,49 +222,41 @@ class SQLiteActionManager extends BaseActionManager {
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT ? OFFSET ?;`;
     p.parameters!.push(fetchCount, limit[0]);
 
-    const exec = option.transaction
-      ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!, 'all')
-      : (q: string, params: any[]) => this.execute(q, params, 'all');
-
-    return exec(sql, p.parameters!).then(data => {
-      const isLastPage = data.length <= limit[1];
-      return {
-        data: isLastPage ? data : data.slice(0, -1),
-        isLastPage,
-      };
-    }).catch(err => {
-      console.error('Error when executing execute query data list', err);
-      return Promise.reject(err);
-    });
+    return (option.transaction
+      ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')
+      : this.execute(sql, p.parameters!, 'all')
+    )
+      .then((data: any[]) => {
+        const isLastPage = data.length <= limit[1];
+        return {
+          data: isLastPage ? data : data.slice(0, -1),
+          isLastPage,
+        };
+      })
+      .catch((err) => {
+        console.error('Waterfall query error:', err);
+        return Promise.reject(err);
+      });
   }
 
-  /**
-   * 新增
-   */
   static insert(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const insertion = params.insertion as Record<string, any>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
 
     for (const key in insertion) {
-      f.push(key);
+      f.push(`\`${key}\``);
       s.push('?');
       p.push(insertion[key]);
     }
 
     const sql = `INSERT INTO ${params.configs.tableName} (${f.join(', ')}) VALUES (${s.join(', ')});`;
 
-    const executeFn = option.transaction
-      ? () => this.executeTransaction(sql, p, option.transaction!, 'run')
-      : () => this.execute(sql, p, 'run');
-
-    return executeFn().then(data => {
-      return { ...insertion, _returns: data };
-    });
+    return (option.transaction
+      ? this.executeTransaction(sql, p, option.transaction, 'run')
+      : this.execute(sql, p, 'run')
+    ).then((data: any) => ({ ...insertion, _returns: data }));
   }
 
-  /**
-   * 批量新增
-   */
   static insertBatch(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const list = params.insertion as Array<Record<string, any>>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
@@ -238,7 +264,6 @@ class SQLiteActionManager extends BaseActionManager {
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
       const s2: string[] = [];
-
       for (const key in item) {
         if (i === 0) f.push(`\`${key}\``);
         p.push(item[key]);
@@ -254,12 +279,9 @@ class SQLiteActionManager extends BaseActionManager {
       : this.execute(sql, p, 'run');
   }
 
-  /**
-   * 物理删除
-   */
   static deleteEntity(params: DeleteParams, option: QueryOption = { transaction: null }): Promise<any> {
     if ((!params.keyword || params.keyword.length === 0) && (!params.where || params.where.length === 0)) {
-      return Promise.reject('Deletion conditions need to be specified to prevent the entire table data from being accidentally deleted.');
+      return Promise.reject('Deletion conditions required to prevent full table deletion.');
     }
 
     const p = GrammarSqlite.getDeleteParameters(params);
@@ -270,9 +292,6 @@ class SQLiteActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters, 'run');
   }
 
-  /**
-   * 更新
-   */
   static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarSqlite.getUpdateParameters(params);
     let limitSql = '';
@@ -288,49 +307,34 @@ class SQLiteActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters, 'run');
   }
 
-  /**
-   * 聚合统计
-   */
   static statsByAggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarSqlite.getParameters(params);
-    const check: Record<string, string> = {
-      count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG',
-    };
+    const check: Record<string, string> = { count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG' };
     const show: string[] = [];
 
     for (const agg of params.aggregate) {
       const fn = check[agg.function.toLowerCase()];
-      if (fn) {
-        show.push(`${fn}(${agg.field}) AS ${agg.name}`);
-      }
+      if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
     const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')
-      : this.execute(sql, p.parameters, 'all');
+      : this.execute(sql, p.parameters!, 'all');
   }
 
-  /**
-   * 自定义 SQL（谨慎使用）
-   */
   static streak(sql: string, parameters: any[] = [], option: QueryOption = { transaction: null }): Promise<any> {
-    const mode = sql.trim().toLowerCase().startsWith('select') ? 'all' : 'run';
+    const isSelect = sql.trim().toLowerCase().startsWith('select');
+    const mode = isSelect ? 'all' : 'run';
 
-    if (option.transaction) {
-      return this.executeTransaction(sql, parameters, option.transaction, mode)
-        .catch(err => {
-          console.error('Exception when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    } else {
-      return this.execute(sql, parameters, mode)
-        .catch(err => {
-          console.error('Exception when executing execute query data list', err);
-          return Promise.reject(err);
-        });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, parameters, option.transaction, mode)
+      : this.execute(sql, parameters, mode)
+    ).catch((err) => {
+      console.error('Custom SQL error:', err);
+      return Promise.reject(err);
+    });
   }
 }
 

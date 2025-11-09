@@ -2,24 +2,78 @@
  * MySQL 对象关系实例
  * 单例数据库操作管理者，负责 MySQL 的基本 CRUD
  */
+
 import { BaseActionManager } from '../BaseActionManager.js';
 import * as GrammarMysql from '../grammar/mysql.js';
-import type {Transaction, QueryParams,QueryOption, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from '../types/onela.js';
-
+import type {
+  Transaction,
+  QueryParams,
+  QueryOption,
+  UpdateParams,
+  UpdateFieldItem,
+  UpdateCaseItem,
+  UpdateCaseField,
+  InsertParams,
+  DeleteParams,
+  AggregateItem
+} from '../types/onela.js';
 
 /**
  * MySQL 单例操作管理器
+ * 支持动态注入 mysql 模块或 Pool 实例（不强制依赖）
  */
 class MySQLActionManager extends BaseActionManager {
-  private static conn: any;
+  private static conn: any = null;
 
   /**
    * 初始化连接池（单例）
+   * 支持：
+   * 1. 传入 mysql 模块 { createPool }
+   * 2. 传入 createPool 函数
+   * 3. 传入已创建的 Pool 实例
+   * 4. 无参数 → 动态 import('mysql')
    */
-  static init(config: any): void {
-    const mysql = require('mysql');
-    const connPool = mysql.createPool(config);
-    this.conn = connPool;
+  static init(config: any, mysqlModuleOrPool?: any): void | Promise<void> {
+    let createPool: any;
+
+    // 情况1: 传入 mysql 模块 { createPool }
+    if (mysqlModuleOrPool?.createPool) {
+      createPool = mysqlModuleOrPool.createPool;
+    }
+    // 情况2: 传入 createPool 函数
+    else if (typeof mysqlModuleOrPool === 'function') {
+      createPool = mysqlModuleOrPool;
+    }
+    // 情况3: 传入已创建的 Pool 实例
+    else if (mysqlModuleOrPool?.getConnection && mysqlModuleOrPool?.query) {
+      this.conn = mysqlModuleOrPool;
+      return;
+    }
+
+    // 情况4: 动态导入 mysql
+    if (!createPool) {
+      return import('mysql')
+        .then((module) => {
+          createPool = module.createPool;
+          const pool = createPool(config);
+          this.conn = pool;
+        })
+        .catch((err) => {
+          console.error('Failed to import mysql. Please install it: npm install mysql');
+          throw new Error('mysql module not found. Install it in your project: npm install mysql');
+        });
+    }
+
+    // 使用传入的 createPool 创建实例
+    const pool = createPool(config);
+    this.conn = pool;
+  }
+
+  /**
+   * 强制设置 Pool 实例（测试/高级用法）
+   */
+  static setPoolInstance(pool: any): void {
+    this.conn = pool;
   }
 
   /**
@@ -30,20 +84,19 @@ class MySQLActionManager extends BaseActionManager {
 
     return new Promise((resolve, reject) => {
       if (!self.conn) {
-        return reject(new Error('Connection pool not initialized'));
+        return reject(new Error('Connection pool not initialized. Call MySQLActionManager.init() first.'));
       }
 
       self.conn.getConnection((err: any, connection: any) => {
         if (err) {
-          console.log('An exception occurred when creating a transaction connection', err);
-          return reject(new Error('An exception occurred when creating a transaction connection'));
+          console.error('Error getting connection for transaction', err);
+          return reject(new Error('Failed to get connection'));
         }
 
         const transaction: Partial<Transaction> = { client: connection };
 
-        // 开始事务
         transaction.begin = () => {
-          return new Promise((res, rej) => {
+          return new Promise<void>((res, rej) => {
             connection.beginTransaction((err: any) => {
               if (err) rej(err);
               else res();
@@ -51,22 +104,30 @@ class MySQLActionManager extends BaseActionManager {
           });
         };
 
-        // 提交事务
         transaction.commit = () => {
-          return new Promise<string>((res) => {
-            connection.commit(() => {
-              res('Transaction submitted successfully');
-              connection.release();
+          return new Promise<string>((res, rej) => {
+            connection.commit((err: any) => {
+              if (err) {
+                console.error('COMMIT error', err);
+                rej(err);
+              } else {
+                connection.release();
+                res('Transaction committed');
+              }
             });
           });
         };
 
-        // 回滚事务
         transaction.rollback = () => {
-          return new Promise<string>((res) => {
-            connection.rollback(() => {
-              res('Transaction rolled back');
-              connection.release();
+          return new Promise<string>((res, rej) => {
+            connection.rollback((err: any) => {
+              if (err) {
+                console.error('ROLLBACK error', err);
+                rej(err);
+              } else {
+                connection.release();
+                res('Transaction rolled back');
+              }
             });
           });
         };
@@ -80,16 +141,14 @@ class MySQLActionManager extends BaseActionManager {
    * 执行 SQL（连接池）
    */
   private static execute(sql: string, parameters: any[] = []): Promise<any> {
-    const self = this;
+    if (!this.conn) {
+      throw new Error('Database not initialized');
+    }
     return new Promise((resolve, reject) => {
-      if (self.conn) {
-        self.conn.query(sql, parameters, (err: any, doc: any) => {
-          if (err) reject(err);
-          else resolve(doc);
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
+      this.conn.query(sql, parameters, (err: any, results: any) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
     });
   }
 
@@ -97,139 +156,97 @@ class MySQLActionManager extends BaseActionManager {
    * 执行事务 SQL
    */
   private static executeTransaction(sql: string, parameters: any[], transaction: Transaction): Promise<any> {
+    if (!transaction?.client) {
+      throw new Error('Invalid transaction');
+    }
     return new Promise((resolve, reject) => {
-      if (transaction && transaction.client) {
-        transaction.client.query(sql, parameters, (err: any, doc: any) => {
-          if (err) reject(err);
-          else resolve(doc);
-        });
-      } else {
-        reject(new Error('The database instance engine instance is not pointed correctly. Please check whether the singleton configs configuration is consistent with the engine configured in dbconfig.'));
-      }
+      transaction.client.query(sql, parameters, (err: any, results: any) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
     });
   }
 
-  /**
-   * 查询单条记录
-   */
+  // ====================== CRUD 方法 ======================
+
   static queryEntity(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
 
-    if (option.transaction) {
-      return this.executeTransaction(sql, p.parameters!, option.transaction).catch(err => {
-        console.log('Error when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    } else {
-      return this.execute(sql, p.parameters).catch(err => {
-        console.error('Error when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, p.parameters!, option.transaction)
+      : this.execute(sql, p.parameters)
+    ).catch((err) => {
+      console.error('Query entity error:', err);
+      return Promise.reject(err);
+    });
   }
 
-  /**
-   * 分页查询 + 总数
-   */
   static queryEntityList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarMysql.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
     const countSql = `SELECT COUNT(0) total FROM ${params.configs.tableName} t ${p.where};`;
 
-    if (option.transaction) {
-      return Promise.all([
-        this.executeTransaction(sql, p.parameters!, option.transaction),
-        this.executeTransaction(countSql, p.parameters!, option.transaction),
-      ]).then(([data, count]) => {
-        return { data, recordsTotal: count[0]?.total ?? 0 };
-      }).catch(err => {
-        console.log('Error when executing execute query data list', err);
+    const exec = option.transaction
+      ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)
+      : this.execute.bind(this);
+
+    return Promise.all([
+      exec(sql, p.parameters),
+      exec(countSql, p.parameters),
+    ])
+      .then(([data, count]) => ({
+        data,
+        recordsTotal: count[0]?.total ?? 0,
+      }))
+      .catch((err) => {
+        console.error('Query list error:', err);
         return Promise.reject(err);
       });
-    } else {
-      return Promise.all([
-        this.execute(sql, p.parameters),
-        this.execute(countSql, p.parameters),
-      ]).then(([data, count]) => {
-        return { data, recordsTotal: count[0]?.total ?? 0 };
-      }).catch(err => {
-        console.error('Error when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    }
   }
 
-  /**
-   * 瀑布流查询（判断末尾）
-   */
   static queryWaterfallList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarMysql.getParameters({ ...params, limit: [limit[0], fetchCount] });
-    const sql = [`SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT ?, ?;`];
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT ?, ?;`;
     p.parameters!.push(limit[0], fetchCount);
 
-    if (option.transaction) {
-      return this.executeTransaction(sql.join(''), p.parameters!, option.transaction).then(data => {
-        const result = { data, isLastPage: false };
-        if (data.length === 0) {
-          result.isLastPage = true;
-        } else if (data.length < limit[1]) {
-          result.isLastPage = true;
-        } else if (data.length > limit[1]) {
-          result.data.pop();
-        }
-        return result;
-      }).catch(err => {
-        console.error('Error when executing execute query data list', err);
+    return (option.transaction
+      ? this.executeTransaction(sql, p.parameters!, option.transaction)
+      : this.execute(sql, p.parameters)
+    )
+      .then((data: any[]) => {
+        const isLastPage = data.length <= limit[1];
+        return {
+          data: isLastPage ? data : data.slice(0, -1),
+          isLastPage,
+        };
+      })
+      .catch((err) => {
+        console.error('Waterfall query error:', err);
         return Promise.reject(err);
       });
-    } else {
-      return this.execute(sql.join(''), p.parameters).then(data => {
-        const result = { data, isLastPage: false };
-        if (data.length === 0) {
-          result.isLastPage = true;
-        } else if (data.length < limit[1]) {
-          result.isLastPage = true;
-        } else if (data.length > limit[1]) {
-          result.data.pop();
-        }
-        return result;
-      }).catch(err => {
-        console.error('Error when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    }
   }
 
-  /**
-   * 新增
-   */
   static insert(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const insertion = params.insertion as Record<string, any>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
 
     for (const key in insertion) {
-      f.push(key);
+      f.push(`\`${key}\``);
       s.push('?');
       p.push(insertion[key]);
     }
 
     const sql = `INSERT INTO ${params.configs.tableName} (${f.join(',')}) VALUES (${s.join(',')});`;
 
-    const executeFn = option.transaction
-      ? () => this.executeTransaction(sql, p, option.transaction!)
-      : () => this.execute(sql, p);
-
-    return executeFn().then(data => {
-      return { ...insertion, _returns: data };
-    });
+    return (option.transaction
+      ? this.executeTransaction(sql, p, option.transaction)
+      : this.execute(sql, p)
+    ).then((data: any) => ({ ...insertion, _returns: data }));
   }
 
-  /**
-   * 批量新增
-   */
   static insertBatch(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const list = params.insertion as Array<Record<string, any>>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
@@ -237,7 +254,6 @@ class MySQLActionManager extends BaseActionManager {
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
       const s2: string[] = [];
-
       for (const key in item) {
         if (i === 0) f.push(`\`${key}\``);
         p.push(item[key]);
@@ -253,12 +269,9 @@ class MySQLActionManager extends BaseActionManager {
       : this.execute(sql, p);
   }
 
-  /**
-   * 物理删除
-   */
   static deleteEntity(params: DeleteParams, option: QueryOption = { transaction: null }): Promise<any> {
     if ((!params.keyword || params.keyword.length === 0) && (!params.where || params.where.length === 0)) {
-      return Promise.reject('Deletion conditions need to be specified to prevent the entire table data from being accidentally deleted.');
+      return Promise.reject('Deletion conditions required to prevent full table deletion.');
     }
 
     const p = GrammarMysql.getDeleteParameters(params);
@@ -269,9 +282,6 @@ class MySQLActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters);
   }
 
-  /**
-   * 更新
-   */
   static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getUpdateParameters(params);
     let limitSql = '';
@@ -280,52 +290,39 @@ class MySQLActionManager extends BaseActionManager {
       p.parameters.push(params.limit);
     }
 
-    const sql = `UPDATE ${params.configs!.tableName} SET ${p.set.join(', ')} WHERE ${p.where}${limitSql};`;
+    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where}${limitSql};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction)
       : this.execute(sql, p.parameters);
   }
 
-  /**
-   * 聚合统计
-   */
   static statsByAggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getParameters(params);
-    const check: Record<string, string> = {
-      count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG',
-    };
+    const check: Record<string, string> = { count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG' };
     const show: string[] = [];
 
     for (const agg of params.aggregate) {
       const fn = check[agg.function.toLowerCase()];
-      if (fn) {
-        show.push(`${fn}(${agg.field}) AS ${agg.name}`);
-      }
+      if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
     const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
 
-    return option.transaction
+    return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)
-      : this.execute(sql, p.parameters);
+      : this.execute(sql, p.parameters)
+    );
   }
 
-  /**
-   * 自定义 SQL（谨慎使用）
-   */
   static streak(sql: string, parameters: any[] = [], option: QueryOption = { transaction: null }): Promise<any> {
-    if (option.transaction) {
-      return this.executeTransaction(sql, parameters, option.transaction).catch(err => {
-        console.error('Exception when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    } else {
-      return this.execute(sql, parameters).catch(err => {
-        console.error('Exception when executing execute query data list', err);
-        return Promise.reject(err);
-      });
-    }
+    return (option.transaction
+      ? this.executeTransaction(sql, parameters, option.transaction)
+      : this.execute(sql, parameters)
+    ).catch((err) => {
+      console.error('Custom SQL error:', err);
+      return Promise.reject(err);
+    });
   }
 }
 
