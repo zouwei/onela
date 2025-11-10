@@ -182,7 +182,7 @@ class PostgreSQLActionManager extends BaseActionManager {
 
   // ====================== CRUD 方法 ======================
 
-  static queryEntity(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
 
@@ -197,7 +197,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       });
   }
 
-  static queryEntityList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
+  static find(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarPostgres.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
     const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
@@ -220,7 +220,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       });
   }
 
-  static queryWaterfallList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
+  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarPostgres.getParameters({ ...params, limit: [limit[0], fetchCount] });
@@ -266,7 +266,7 @@ class PostgreSQLActionManager extends BaseActionManager {
     ).then((data: any) => ({ ...insertion, _returns: data }));
   }
 
-  static insertBatch(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static inserts(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
     const list = params.insertion as Array<Record<string, any>>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
     let index = 0;
@@ -290,7 +290,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p);
   }
 
-  static deleteEntity(params: DeleteParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static delete(params: DeleteParams, option: QueryOption = { transaction: null }): Promise<any> {
     if ((!params.keyword || params.keyword.length === 0) && (!params.where || params.where.length === 0)) {
       return Promise.reject('Deletion conditions required to prevent full table deletion.');
     }
@@ -303,7 +303,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters);
   }
 
-  static updateEntity(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static update(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getUpdateParameters(params);
     let limitSql = '';
     if (params.limit) {
@@ -318,7 +318,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute(sql, p.parameters);
   }
 
-  static statsByAggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
+  static aggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getParameters(params);
     const check: Record<string, string> = { count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG' };
     const show: string[] = [];
@@ -337,7 +337,7 @@ class PostgreSQLActionManager extends BaseActionManager {
     return exec(sql, p.parameters!).then((result: any) => result.rows);
   }
 
-  static streak(sql: string, parameters: any[] = [], option: QueryOption = { transaction: null }): Promise<any> {
+  static sql(sql: string, parameters: any[] = [], option: QueryOption = { transaction: null }): Promise<any> {
     return (option.transaction
       ? this.executeTransaction(sql, parameters, option.transaction)
       : this.execute(sql, parameters)

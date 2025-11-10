@@ -13,15 +13,15 @@ import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, D
 interface ActionManager {
   init(config: any, oduleOrPool?: any): void;
   createTransaction(): Promise<Transaction>;
-  queryEntity(params: any, option?: QueryOption): Promise<any>;
-  queryEntityList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }>;
-  queryWaterfallList(params: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }>;
+  findOne(params: any, option?: QueryOption): Promise<any>;
+  findList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }>;
+  find(params: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }>;
   insert(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
-  insertBatch(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
-  deleteEntity(params: DeleteParams & { configs: Configs }, option?: QueryOption): Promise<any>;
-  updateEntity(params: UpdateParams & { configs: Configs }, option?: QueryOption): Promise<any>;
-  statsByAggregate(params: QueryParams & { aggregate?: AggregateItem[]; configs: Configs }, option?: QueryOption): Promise<any>;
-  streak?(sql: string, parameters?: any[], option?: QueryOption): Promise<any>;
+  inserts(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  delete(params: DeleteParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  update(params: UpdateParams & { configs: Configs }, option?: QueryOption): Promise<any>;
+  aggregate(params: QueryParams & { aggregate?: AggregateItem[]; configs: Configs }, option?: QueryOption): Promise<any>;
+  sql?(sql: string, parameters?: any[], option?: QueryOption): Promise<any>;
 }
 
 /**
@@ -122,25 +122,25 @@ class OnelaBaseModel {
   /**
    * 查询单条
    */
-  static queryOne(args: any, option?: QueryOption): Promise<any> {
+  static findOne(args: any, option?: QueryOption): Promise<any> {
     const params = { ...args, configs: this.configs } as QueryParams;
-    return this.getActionManager().then(am => am.queryEntity(params, option));
+    return this.getActionManager().then(am => am.findOne(params, option));
   }
 
   /**
    * 查询列表 + 总数
    */
-  static query(args: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(args: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }> {
     const params = { ...args, configs: this.configs } as QueryParams;
-    return this.getActionManager().then(am => am.queryEntityList(params, option));
+    return this.getActionManager().then(am => am.findList(params, option));
   }
 
   /**
    * 瀑布流查询
    */
-  static queryList(args: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }> {
+  static find(args: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }> {
     const params = { ...args, configs: this.configs } as QueryParams;
-    return this.getActionManager().then(am => am.queryWaterfallList(params, option));
+    return this.getActionManager().then(am => am.find(params, option));
   }
 
   /**
@@ -156,7 +156,7 @@ class OnelaBaseModel {
    */
   static inserts(args:  any, option?: QueryOption): Promise<any> {
     const params = { ...args, configs: this.configs } as InsertParams;
-    return this.getActionManager().then(am => am.insertBatch(params, option));
+    return this.getActionManager().then(am => am.inserts(params, option));
   }
 
   /**
@@ -167,7 +167,7 @@ class OnelaBaseModel {
       return Promise.reject(new Error('paras.where delete condition (array) must exist condition'));
     }
     const params = { ...args, configs: this.configs } as DeleteParams;
-    return this.getActionManager().then(am => am.deleteEntity(params, option));
+    return this.getActionManager().then(am => am.delete(params, option));
   }
 
   /**
@@ -178,7 +178,7 @@ class OnelaBaseModel {
       return Promise.reject(new Error('paras.where update condition (array) must exist condition'));
     }
     const params = { ...args, configs: this.configs } as UpdateParams;
-    return this.getActionManager().then(am => am.updateEntity(params, option));
+    return this.getActionManager().then(am => am.update(params, option));
   }
 
   /**
@@ -186,18 +186,18 @@ class OnelaBaseModel {
    */
   static aggregate(args: any & { aggregate: AggregateItem[] }, option?: QueryOption): Promise<any> {
     const params = { ...args, configs: this.configs } as QueryParams;
-    return this.getActionManager().then(am => am.statsByAggregate(params, option));
+    return this.getActionManager().then(am => am.aggregate(params, option));
   }
 
   /**
    * 自定义 SQL（谨慎）
    */
-  static streak(sql: string, parameters: any[] = [], option?: QueryOption): Promise<any> {
+  static sql(sql: string, parameters: any[] = [], option?: QueryOption): Promise<any> {
     return this.getActionManager().then(am => {
-      if (am.streak) {
-        return am.streak(sql, parameters, option);
+      if (am.sql) {
+        return am.sql(sql, parameters, option);
       } else {
-        return Promise.reject(new Error('This type of database does not support the streak method'));
+        return Promise.reject(new Error('This type of database does not support the sql method'));
       }
     });
   }
