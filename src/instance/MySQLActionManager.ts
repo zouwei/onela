@@ -171,7 +171,7 @@ class MySQLActionManager extends BaseActionManager {
 
   static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)
@@ -184,7 +184,7 @@ class MySQLActionManager extends BaseActionManager {
 
   static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarMysql.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) total FROM ${params.configs.tableName} t ${p.where};`;
 
     const exec = option.transaction
@@ -209,8 +209,7 @@ class MySQLActionManager extends BaseActionManager {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarMysql.getParameters({ ...params, limit: [limit[0], fetchCount] });
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT ?, ?;`;
-    p.parameters!.push(limit[0], fetchCount);
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)
@@ -307,7 +306,7 @@ class MySQLActionManager extends BaseActionManager {
       if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
-    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
+    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)

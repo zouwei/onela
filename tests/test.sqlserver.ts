@@ -73,7 +73,7 @@ ToDoManager.inserts([
 /**
  * 单例模式：数据查询
  */
-ToDoManager.queryOne({
+ToDoManager.findOne({
     where: [
         {"logic": "and", "key": "id", "operator": ">=", "value": 12},
         {"logic": "and", "key": "id", "operator": "=", "value": 13}
@@ -87,7 +87,7 @@ ToDoManager.queryOne({
 /**
  * 单例模式：分页查询
  */
-ToDoManager.query({
+ToDoManager.findList({
     "where": [
         {"logic": "and", "key": "id", "operator": ">", "value": 12}
     ]
@@ -100,7 +100,7 @@ ToDoManager.query({
 /**
  * 获取数据瀑布
  */
-ToDoManager.queryList({
+ToDoManager.find({
     "where": [
         // {"logic": "and", "key": "valid", "operator": "=", "value": 1}
     ],

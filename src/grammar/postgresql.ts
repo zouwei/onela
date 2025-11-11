@@ -44,7 +44,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
   let index = 0;
   var _self: QueryResult = {
     select: '',
-    where: ' where 1=1 ',
+    where: ' WHERE 1=1 ',
     orderBy: '',
     groupBy: '',
     // parameters: [],
@@ -69,14 +69,10 @@ const getParameters = function (paras: QueryParams): QueryResult {
       }
     }
     if (parts.length > 0) {
-      _self.orderBy = ' order by ' + parts.join(', ');
+      _self.orderBy = ' ORDER BY ' + parts.join(', ');
     }
   }
 
-  // === GROUP BY ===
-  if (paras.groupBy && Array.isArray(paras.groupBy) && paras.groupBy.length > 0) {
-    _self.groupBy = ` GROUP BY ${paras.groupBy.join(', ')} `;
-  }
 
   // === WHERE 条件 ===
   const keywords: KeywordItem[] = paras.keyword || paras.where || [];
@@ -84,7 +80,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
   for (const item of keywords) {
     if (!item || item.value === '' || item.value === undefined || item.value === null) continue;
 
-    const logic = item.logic || 'and';
+    const logic = item.logic || 'AND';
     const key = item.key;
     const operator = item.operator || '=';
 
@@ -102,7 +98,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
           _self.where += `${operator} ${item.value}`;
         } else {
           index++;
-          _self.where += `${operator}$${index}`;
+          _self.where += `${operator} $${index}`;
           _self.parameters.push(item.value);
         }
         break;
@@ -153,13 +149,19 @@ const getParameters = function (paras: QueryParams): QueryResult {
     }
   }
 
+  
+  // === GROUP BY ===
+  if (paras.groupBy && Array.isArray(paras.groupBy) && paras.groupBy.length > 0) {
+    _self.groupBy = ` GROUP BY ${paras.groupBy.join(', ')} `;
+  }
+
   // === LIMIT & OFFSET ===
   if (paras.limit && paras.limit.length > 1) {
     index++;
     const limitIndex = index;
     index++;
     const offsetIndex = index;
-    _self.limit = ` limit $${limitIndex} offset $${offsetIndex}`;
+    _self.limit = ` LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
     _self.parameters.push(paras.limit[1], paras.limit[0]); // 注意：PostgreSQL 是 LIMIT 先，OFFSET 后
   }
 

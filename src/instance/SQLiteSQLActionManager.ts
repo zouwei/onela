@@ -181,7 +181,7 @@ class SQLiteActionManager extends BaseActionManager {
 
   static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarSqlite.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'get')
@@ -194,7 +194,7 @@ class SQLiteActionManager extends BaseActionManager {
 
   static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarSqlite.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
 
     const exec = option.transaction
@@ -219,8 +219,7 @@ class SQLiteActionManager extends BaseActionManager {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarSqlite.getParameters({ ...params, limit: [limit[0], fetchCount] });
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT ? OFFSET ?;`;
-    p.parameters!.push(fetchCount, limit[0]);
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')
@@ -300,7 +299,7 @@ class SQLiteActionManager extends BaseActionManager {
       p.parameters.push(params.limit);
     }
 
-    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where}${limitSql};`;
+    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where} ${limitSql};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction, 'run')
@@ -317,7 +316,7 @@ class SQLiteActionManager extends BaseActionManager {
       if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
-    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
+    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where} ${p.limit};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')

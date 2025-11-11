@@ -85,7 +85,7 @@ class ToDoManager extends OnelaBaseModel {
 /**
  * 单条查询
  */
-ToDoManager.queryOne({
+ToDoManager.findOne({
   where: [
     // { logic: 'and', key: 'id', operator: '=', value: 1 },
   ],
@@ -103,7 +103,7 @@ ToDoManager.insert({ content: '测试' })
 /**
  * 分页查询
  */
-ToDoManager.query({
+ToDoManager.findList({
   where: [
     // { logic: 'and', key: 'id', operator: '=', value: 1 },
   ],
@@ -115,7 +115,7 @@ ToDoManager.query({
 /**
  * 瀑布流查询
  */
-ToDoManager.queryList({
+ToDoManager.find({
   where: [{ logic: 'and', key: 'valid', operator: '=', value: 1 }],
   orderBy: { id: 'DESC' },
   limit: [230, 10],

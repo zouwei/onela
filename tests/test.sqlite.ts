@@ -74,7 +74,7 @@ tableInstance.transaction().then(t => {
 // /**
 //  * 获取数据瀑布
 //  */
-// tableInstance.queryList({
+// tableInstance.find({
 //     "where": [
 //         // {"logic": "and", "key": "valid", "operator": "=", "value": 1}
 //     ],
@@ -106,7 +106,7 @@ tableInstance.transaction().then(t => {
 // /**
 //  * 单例模式：数据查询
 //  */
-// tableInstance.queryOne({
+// tableInstance.findOne({
 //     select:["id","content"],
 //     where: [
 //          //{"logic": "and", "key": "id", "operator": "in", "value": [9,10]}
@@ -121,7 +121,7 @@ tableInstance.transaction().then(t => {
 // /**
 //  * 单例模式：分页查询
 //  */
-// tableInstance.query({
+// tableInstance.findList({
 //     "where": [
 //             //{"logic": "and", "key": "id", "operator": "=", "value": 1}
 //         ],

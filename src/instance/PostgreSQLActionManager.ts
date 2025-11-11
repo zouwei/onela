@@ -184,7 +184,7 @@ class PostgreSQLActionManager extends BaseActionManager {
 
   static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarPostgres.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where}${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)
@@ -197,9 +197,9 @@ class PostgreSQLActionManager extends BaseActionManager {
       });
   }
 
-  static find(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
     const p = GrammarPostgres.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
 
     const exec = option.transaction
@@ -207,8 +207,8 @@ class PostgreSQLActionManager extends BaseActionManager {
       : this.execute.bind(this);
 
     return Promise.all([
-      exec(sql, p.parameters),
-      exec(countSql, p.parameters),
+      exec(sql, p.parameters!),
+      exec(countSql, p.parameters!),
     ])
       .then(([dataRes, countRes]) => ({
         data: dataRes.rows,
@@ -220,25 +220,30 @@ class PostgreSQLActionManager extends BaseActionManager {
       });
   }
 
-  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
+  static find(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarPostgres.getParameters({ ...params, limit: [limit[0], fetchCount] });
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} LIMIT $${p.parameters!.length + 1} OFFSET $${p.parameters!.length + 2};`;
-    p.parameters!.push(fetchCount, limit[0]);
+    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
+    console.log(`[find] SQL: ${sql}`);
+    console.log(`[find] parameters: ${p.parameters!.length}, ${JSON.stringify(p.parameters!)}`);
 
     const exec = option.transaction
       ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)
       : this.execute.bind(this);
 
-    return exec(sql, p.parameters)
-      .then((result: any) => {
-        const rows = result.rows;
+    return exec(sql, p.parameters!)
+      .then((data: any) => {
+        const rows = data.rows;
         const isLastPage = rows.length <= limit[1];
-        return {
+        // 返回数据
+        const result = {
           data: isLastPage ? rows : rows.slice(0, -1),
           isLastPage,
-        };
+        }
+        console.log(`查询数据库数据: ${JSON.stringify(result)}`)
+        return Promise.resolve(result);
+        
       })
       .catch((err) => {
         console.error('Waterfall query error:', err);
@@ -311,7 +316,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       p.parameters.push(params.limit);
     }
 
-    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where}${limitSql};`;
+    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where} ${limitSql};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction)
@@ -328,7 +333,7 @@ class PostgreSQLActionManager extends BaseActionManager {
       if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
     }
 
-    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where}${p.limit};`;
+    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where} ${p.limit};`;
 
     const exec = option.transaction
       ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)

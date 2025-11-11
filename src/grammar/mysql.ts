@@ -106,20 +106,6 @@ _self.parameters = [];
     _self.select = 't.*';
   }
 
-  // === ORDER BY ===
-  if (paras.orderBy && typeof paras.orderBy === 'object') {
-    const parts: string[] = [];
-    for (const field in paras.orderBy) {
-      const dir = paras.orderBy[field];
-      if (dir === 'ASC' || dir === 'DESC') {
-        parts.push(`${field} ${dir}`);
-      }
-    }
-    if (parts.length > 0) {
-      _self.orderBy = ' order by ' + parts.join(', ');
-    }
-  }
-
   // === WHERE 条件 ===
   const keywords: KeywordItem[] = paras.keyword || paras.where || [];
 
@@ -180,9 +166,24 @@ _self.parameters = [];
     }
   }
 
+  
+  // === ORDER BY ===
+  if (paras.orderBy && typeof paras.orderBy === 'object') {
+    const parts: string[] = [];
+    for (const field in paras.orderBy) {
+      const dir = paras.orderBy[field];
+      if (dir === 'ASC' || dir === 'DESC') {
+        parts.push(`${field} ${dir}`);
+      }
+    }
+    if (parts.length > 0) {
+      _self.orderBy = ' ORDER BY ' + parts.join(', ');
+    }
+  }
+
   // === LIMIT ===
   if (paras.limit && paras.limit.length > 1) {
-    _self.limit = ' limit ?,?';
+    _self.limit = ' LIMIT ?,?';
     _self.parameters.push(paras.limit[0], paras.limit[1]); // offset, limit
   }
 

@@ -292,8 +292,8 @@ const getParameters = function (paras: QueryParams): QueryResult {
   if (paras.limit && paras.limit.length > 0) {
     const offset = paras.limit.length > 1 ? paras.limit[0] : 0;
     const limit = paras.limit.length > 1 ? paras.limit[1] : paras.limit[0];
-
-    _self.limit = ` offset @onelaPageIndex rows fetch next @onelaPageSize rows only`;
+    
+    _self.limit = ` OFFSET @onelaPageIndex ROWS FETCH NEXT @onelaPageSize ROWS ONLY`;
     _self.parameters.push(
       { name: 'onelaPageIndex', sqlType: 'Int', value: offset },
       { name: 'onelaPageSize', sqlType: 'Int', value: limit }
