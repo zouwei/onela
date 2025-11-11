@@ -179,7 +179,7 @@ class SQLiteActionManager extends BaseActionManager {
 
   // ====================== CRUD 方法 ======================
 
-  static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static findAll(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarSqlite.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
@@ -192,7 +192,7 @@ class SQLiteActionManager extends BaseActionManager {
     });
   }
 
-  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: any }> {
     const p = GrammarSqlite.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
@@ -204,8 +204,7 @@ class SQLiteActionManager extends BaseActionManager {
     return Promise.all([
       exec(sql, p.parameters!, 'all'),
       exec(countSql, p.parameters!, 'get'),
-    ])
-      .then(([data, count]) => ({
+    ]).then(([data, count]) => ({
         data,
         recordsTotal: count?.total ?? 0,
       }))

@@ -169,7 +169,7 @@ class MySQLActionManager extends BaseActionManager {
 
   // ====================== CRUD 方法 ======================
 
-  static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static findAll(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarMysql.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
@@ -182,7 +182,7 @@ class MySQLActionManager extends BaseActionManager {
     });
   }
 
-  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: any }> {
     const p = GrammarMysql.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) total FROM ${params.configs.tableName} t ${p.where};`;
@@ -192,8 +192,8 @@ class MySQLActionManager extends BaseActionManager {
       : this.execute.bind(this);
 
     return Promise.all([
-      exec(sql, p.parameters),
-      exec(countSql, p.parameters),
+      exec(sql, p.parameters!),
+      exec(countSql, p.parameters!),
     ])
       .then(([data, count]) => ({
         data,

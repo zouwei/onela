@@ -13,8 +13,8 @@ import type { DatabaseConfig, Configs, Transaction, InsertParams, QueryOption, D
 interface ActionManager {
   init(config: any, oduleOrPool?: any): void;
   createTransaction(): Promise<Transaction>;
-  findOne(params: any, option?: QueryOption): Promise<any>;
-  findList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }>;
+  findAll(params: any, option?: QueryOption): Promise<any>;
+  findList(params: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: any }>;
   find(params: any, option?: QueryOption): Promise<{ data: any[]; isLastPage: boolean }>;
   insert(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
   inserts(params: InsertParams & { configs: Configs }, option?: QueryOption): Promise<any>;
@@ -124,13 +124,25 @@ class OnelaBaseModel {
    */
   static findOne(args: any, option?: QueryOption): Promise<any> {
     const params = { ...args, configs: this.configs } as QueryParams;
-    return this.getActionManager().then(am => am.findOne(params, option));
+    return this.getActionManager()
+      .then(am => am.findAll(params, option))
+      .then((result: any) => result.rows[0] || null); // 只需要输出第一条
   }
+
+  // 查询符合条件的所有记录
+  static findAll(args: any, option?: QueryOption): Promise<any> {
+    const params = { ...args, configs: this.configs } as QueryParams;
+    return this.getActionManager()
+      .then(am => am.findAll(params, option))
+      .then((result: any) => result.rows); // 输出所有rows
+  }
+
+  
 
   /**
    * 查询列表 + 总数
    */
-  static findList(args: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(args: any, option?: QueryOption): Promise<{ data: any[]; recordsTotal: any }> {
     const params = { ...args, configs: this.configs } as QueryParams;
     return this.getActionManager().then(am => am.findList(params, option));
   }

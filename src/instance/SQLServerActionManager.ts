@@ -250,22 +250,20 @@ class SQLServerActionManager extends BaseActionManager {
 
   // ====================== CRUD 方法 ======================
 
-  static findOne(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
+  static findAll(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
     const p = GrammarParameter.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction)
       : this.execute(sql, p.parameters)
-    )
-      .then(result => result.rows[0] || null)
-      .catch(err => {
+    ).catch(err => {
         console.error('Query entity error:', err);
         return Promise.reject(err);
       });
   }
 
-  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: number }> {
+  static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: any }> {
     const p = GrammarParameter.getParameters(params);
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
     const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
@@ -277,8 +275,7 @@ class SQLServerActionManager extends BaseActionManager {
     return Promise.all([
       exec(sql, p.parameters!),
       exec(countSql, p.parameters),
-    ])
-      .then(([dataRes, countRes]) => ({
+    ]).then(([dataRes, countRes]) => ({
         data: dataRes.rows,
         recordsTotal: countRes.rows[0]?.total ?? 0,
       }))
