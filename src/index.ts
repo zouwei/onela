@@ -158,16 +158,68 @@ class OnelaBaseModel {
   /**
    * 新增
    */
-  static insert(args: any, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs } as InsertParams;
+  static insert(args: any, option?: QueryOption): Promise<any> {    
+    let p:any = {};
+    let entity:any = Object.assign({}, args);
+    // entity.configs = this.configs;
+    for (let field of this.configs.fields!) {
+        if (field.name in entity) {
+            p[field.name] = entity[field.name!];
+        } else {
+            let default_value = null;
+            if (field.default === undefined) {
+                throw new Error(`field:${field.name} required`);
+            }
+            if (field.default instanceof Function) {
+                default_value = field.default();
+            } else {
+                default_value = field.default;
+            }
+            // 如果是主键自增，则跳出
+            if (field.increment)
+                continue;
+            p[field.name] = default_value;
+        }
+    }
+
+    // 新增入参结构调整    
+    const params = { insertion: p, configs: this.configs } as InsertParams;
+
     return this.getActionManager().then(am => am.insert(params, option));
   }
 
   /**
    * 批量新增
    */
-  static inserts(args:  any, option?: QueryOption): Promise<any> {
-    const params = { ...args, configs: this.configs } as InsertParams;
+  static inserts(entity_list: any, option?: QueryOption): Promise<any> {
+    let insert_list = [];
+    for (let entity of entity_list) {
+        let insert_obj:any = {};
+        for (let field of this.configs.fields!) {
+            if (field.name in entity) {
+                insert_obj[field.name] = entity[field.name];
+            } else {
+                let default_value = null;
+                if (field.default === undefined) {
+                    throw new Error(`INSERTS Field:${field.name} required`);
+                }
+                if (field.default instanceof Function) {
+                    default_value = field.default();
+                } else {
+                    default_value = field.default;
+                }
+                // 如果是主键自增，则跳出
+                if (field.increment)
+                    continue;
+                insert_obj[field.name] = default_value;
+            }
+        }
+        insert_list.push(insert_obj);
+    }
+
+    // 新增入参结构调整    
+    const params = { insertion: insert_list, configs: this.configs } as InsertParams;
+    
     return this.getActionManager().then(am => am.inserts(params, option));
   }
 
@@ -178,6 +230,7 @@ class OnelaBaseModel {
     if ((!args.keyword || args.keyword.length === 0) && (!args.where || args.where.length === 0)) {
       return Promise.reject(new Error('paras.where delete condition (array) must exist condition'));
     }
+    
     const params = { ...args, configs: this.configs } as DeleteParams;
     return this.getActionManager().then(am => am.delete(params, option));
   }

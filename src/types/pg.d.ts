@@ -15,4 +15,15 @@ declare module 'pg' {
     query(config: { text: string; values?: any[] }): Promise<{ rows: any[] }>;
     release(): void;
   }
+
+  export interface TypeParser {
+    (value: string): any;
+  }
+
+  export interface Types {
+    setTypeParser(oid: number, parser: TypeParser | 'text' | 'binary'): void;
+    getTypeParser(oid: number, format: 'text' | 'binary'): TypeParser;
+  }
+  
+  export const types: Types;
 }

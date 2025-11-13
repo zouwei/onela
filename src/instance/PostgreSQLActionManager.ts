@@ -33,39 +33,27 @@ class PostgreSQLActionManager extends BaseActionManager {
    * 3. 传入已创建的 Pool 实例
    * 4. 无参数 → 动态 import('pg')
    */
-  static init(config: any, pgModuleOrPool?: any): void | Promise<void> {
-    let Pool: any;
+  static async init(config: any): Promise<void> {
+    // 直接用 require，彻底绕过 ESM 地狱
+    const pgModule = await import('pg');
+    const Pool = (pgModule as any).Pool || pgModule.default.Pool;
 
-    // 情况1: 传入 pg 模块 { Pool }
-    if (pgModuleOrPool?.Pool) {
-      Pool = pgModuleOrPool.Pool;
-    }
-    // 情况2: 传入 Pool 类
-    else if (typeof pgModuleOrPool === 'function' && pgModuleOrPool.prototype?.connect) {
-      Pool = pgModuleOrPool;
-    }
-    // 情况3: 传入已创建的 Pool 实例
-    else if (pgModuleOrPool?.connect && pgModuleOrPool?.query) {
-      this.conn = pgModuleOrPool;
-      return;
-    }
+    // 正确获取 types（通过 default）    
+    const { types } = pgModule.default;
+    const pool = new Pool({
+      ...config,
+      // 新版本（pg ≥ 8.7+）推荐写法：
+      types: {
+        getTypeParser: (oid:number, format:any) => {
+          // 1184 是 timestamptz 的 OID
+          if (oid === 1184) {
+            return (val: string) => val; // 直接返回 ISO 字符串，不解析成对象
+          }
+          return types.getTypeParser(oid, format);
+        },
+      },
+    });
 
-    // 情况4: 动态导入 pg
-    if (!Pool) {
-      return import('pg')
-        .then((module) => {
-          Pool = module.Pool;
-          const pool = new Pool(config);
-          this.conn = pool;
-        })
-        .catch((err) => {
-          console.error('Failed to import pg. Please install it: npm install pg');
-          throw new Error('pg module not found. Install it in your project: npm install pg');
-        });
-    }
-
-    // 使用传入的 Pool 类创建实例
-    const pool = new Pool(config);
     this.conn = pool;
   }
 
@@ -221,8 +209,8 @@ class PostgreSQLActionManager extends BaseActionManager {
     const fetchCount = limit[1] + 1;
     const p = GrammarPostgres.getParameters({ ...params, limit: [limit[0], fetchCount] });
     const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
-    console.log(`[find] SQL: ${sql}`);
-    console.log(`[find] parameters: ${p.parameters!.length}, ${JSON.stringify(p.parameters!)}`);
+    // console.log(`[find] SQL: ${sql}`);
+    // console.log(`[find] parameters: ${p.parameters!.length}, ${JSON.stringify(p.parameters!)}`);
 
     const exec = option.transaction
       ? (q: string, params: any[]) => this.executeTransaction(q, params, option.transaction!)
@@ -248,18 +236,20 @@ class PostgreSQLActionManager extends BaseActionManager {
   }
 
   static insert(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
-    const insertion = params.insertion as Record<string, any>;
+    const insertion = params.insertion;
     const p: any[] = [], f: string[] = [], s: string[] = [];
     let index = 0;
-
+    // console.log(`INSERT params.insertion;:${JSON.stringify(insertion)}`);
     for (const key in insertion) {
-      f.push(key);
+      f.push(key);  //字段名称集合 
       index++;
-      s.push(`$${index}`);
-      p.push(insertion[key]);
+      s.push(`$${index}`);  //sql参数化处理符合
+      p.push(insertion[key]);  //参数值 
     }
 
-    const sql = `INSERT INTO ${params.configs.tableName} (${f.join(', ')}) VALUES (${s.join(', ')});`;
+    const sql = `INSERT INTO ${params.configs.tableName}(${f.join(', ')}) VALUES(${s.join(', ')});`;
+    console.log(`INSERT p: ${p.length}, f:${f.length}, s:${s.length}`);
+    console.log(`INSERT SQL: ${sql}`);
 
     return (option.transaction
       ? this.executeTransaction(sql, p, option.transaction)
@@ -313,6 +303,8 @@ class PostgreSQLActionManager extends BaseActionManager {
     }
 
     const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where} ${limitSql};`;
+    console.log(`UPDATE打印SQL:${sql}`);
+    console.log(`UPDATE打印参数:${ JSON.stringify(p.parameters) }`);
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction)

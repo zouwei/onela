@@ -31,13 +31,12 @@ class ToDoManager extends OnelaBaseModel {
             {name: "id", type: "int", default: null, increment: true},
             {name: "content", type: "varchar"},
             {name: "is_done", type: "int", default: 0},
-            {
-                name: "create_time", type: "datetime", default: () => {
+            { name: "create_time", type: "timestamptz", default: () => {
                 return new Date()
             }
             },
             {
-                name: "finish_time", type: "datetime",  default: () => {
+                name: "finish_time", type: "timestamptz",  default: () => {
                 return new Date()
             }
             }

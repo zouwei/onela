@@ -1,40 +1,5 @@
 import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../types/onela.js';
 
-
-
-// /**
-//  * PostgreSQL - 命令行参数处理
-//  * author: joey
-//  * create time: 2018-04-25
-//  */
-
-// interface KeywordItem {
-//   key: string;
-//   value: any;
-//   logic?: 'and' | 'or';
-//   operator?:
-//     | '='
-//     | '>'
-//     | '<'
-//     | '<>'
-//     | '>='
-//     | '<='
-//     | 'in'
-//     | 'not in'
-//     | '%'
-//     | 'x%'
-//     | '%%'
-//     | 'is';
-//   /** 允许直接拼接 SQL 片段（不参数化） */
-//   format?: boolean;
-// }
-
-// const m = {} as {
-//   getParameters: (paras: SelectField) => QueryResult;
-//   getUpdateParameters: (paras: UpdateParameters) => UpdateResult;
-//   getDeleteParameters: (paras: { keyword?: KeywordItem[]; where?: KeywordItem[] }) => DeleteResult;
-// };
-
 /**
  * 获取分页参数，封装成执行SQL参数化的对象（PostgreSQL $1, $2...）
  * @param paras 原始参数集合
@@ -287,7 +252,7 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
       case 'in':
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
-          index--;
+          // index--;
           const placeholders: string[] = [];
           for (const _ of item.value) {
             index++;

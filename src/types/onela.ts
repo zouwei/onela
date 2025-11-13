@@ -60,10 +60,13 @@ interface FieldConfig {
       | 'json'
       | 'blob'
       | 'datetime'
+      | 'timestampt'
+      | 'timestamptz'
       | 'tinyint';
-    default: string | number | null;
+    default: any;
     comment: string;
     primary?: true;
+    increment?: boolean
 }
 
 interface KeywordItem {
