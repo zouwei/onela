@@ -254,7 +254,7 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
         if (Array.isArray(item.value) && item.value.length > 0) {
           // index--;
           const placeholders: string[] = [];
-          for (const _ of item.value) {
+          for (const _ in item.value) {
             index++;
             placeholders.push(`$${index}`);
             _self.parameters.push(item.value[_]);

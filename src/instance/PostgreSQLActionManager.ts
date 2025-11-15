@@ -295,6 +295,7 @@ class PostgreSQLActionManager extends BaseActionManager {
   }
 
   static update(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
+    console.log(`UPDATE入参:${JSON.stringify(params)}`);
     const p = GrammarPostgres.getUpdateParameters(params);
     let limitSql = '';
     if (params.limit) {
