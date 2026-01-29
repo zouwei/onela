@@ -59,6 +59,9 @@ import { SQLServerActionManager } from './instance/SQLServerActionManager.js';
 // 新版适配器
 import { MySQLActionManagerV2 } from './instance/MySQLActionManagerV2.js';
 import { PostgreSQLActionManagerV2 } from './instance/PostgreSQLActionManagerV2.js';
+import { SQLiteActionManagerV2 } from './instance/SQLiteActionManagerV2.js';
+import { SQLServerActionManagerV2 } from './instance/SQLServerActionManagerV2.js';
+import { OracleActionManagerV2 } from './instance/OracleActionManagerV2.js';
 
 import type {
   DatabaseConfig,
@@ -88,11 +91,17 @@ export * from './query/index.js';
 // ==================== 连接路由 ====================
 export * from './router/index.js';
 
+// ==================== Schema 模块 ====================
+export * from './schema/index.js';
+
 // ==================== 安全模块 ====================
 export * from './security/index.js';
 
 // ==================== 日志模块 ====================
 export * from './logger/index.js';
+
+// ==================== 错误模块 ====================
+export * from './errors/index.js';
 
 // ==================== 类型定义 ====================
 export * from './types/onela.js';
@@ -143,12 +152,17 @@ class Onela {
 
     // SQLite
     if (['sqlite', 'sqlite3'].includes(type)) {
-      return SQLiteActionManager;
+      return this._useV2 ? SQLiteActionManagerV2 : SQLiteActionManager;
     }
 
     // SQL Server
     if (['sqlserver', 'mssql'].includes(type)) {
-      return SQLServerActionManager;
+      return this._useV2 ? SQLServerActionManagerV2 : SQLServerActionManager;
+    }
+
+    // Oracle
+    if (['oracle', 'oracledb'].includes(type)) {
+      return OracleActionManagerV2;
     }
 
     // 未知类型
@@ -496,6 +510,11 @@ export { Op } from './query/operators/index.js';
 // 导出 QueryBuilder 工厂函数
 export { createQueryBuilder } from './query/QueryBuilder.js';
 
+// 导出高级查询工厂函数
+export { createJoinBuilder } from './query/JoinBuilder.js';
+export { createSubqueryBuilder, subqueryIn, subqueryExists } from './query/SubqueryBuilder.js';
+export { createMetadataQuery } from './query/MetadataQuery.js';
+
 // 导出 SQL 构建器工厂函数
 export { createSQLBuilder } from './builders/SQLBuilder.js';
 
@@ -504,6 +523,19 @@ export { createConnectionRouter } from './router/ConnectionRouter.js';
 
 // 导出安全模块工厂函数
 export { createSQLInjectionPrevention, defaultSecurity } from './security/SQLInjectionPrevention.js';
+export { createOperationGuard } from './security/OperationGuard.js';
+export { createAuditLogger, MemoryAuditStore } from './security/AuditLogger.js';
+export { createRowLimiter } from './security/RowLimiter.js';
+export { createFieldAccessControl } from './security/FieldAccessControl.js';
 
 // 导出日志模块工厂函数
 export { createLogger, defaultLogger, LogLevel } from './logger/Logger.js';
+
+// 导出 Schema 模块工厂函数
+export { createDDLBuilder } from './schema/DDLBuilder.js';
+export { createSchemaIntrospector } from './schema/SchemaIntrospector.js';
+export { createMigrationRunner } from './schema/MigrationRunner.js';
+export { DynamicModelRegistry } from './schema/DynamicModel.js';
+
+// 导出错误模块
+export { OnelaError, ErrorCode, wrapError, isOnelaError, connectionError, queryError, configError, securityError, transactionError, schemaError } from './errors/OnelaError.js';

@@ -70,6 +70,8 @@ export class ConnectionRouter {
   private config: RouterConfig;
   private roundRobinIndex: number = 0;
   private healthCheckTimer?: NodeJS.Timeout;
+  /** 每个节点的活跃连接计数（用于 least-connections 策略） */
+  private activeConnections: Map<string, number> = new Map();
 
   constructor(config: Partial<RouterConfig> = {}) {
     this.config = {
@@ -98,6 +100,7 @@ export class ConnectionRouter {
    * 移除数据库节点
    */
   removeNode(nodeId: string): boolean {
+    this.activeConnections.delete(nodeId);
     return this.nodes.delete(nodeId);
   }
 
@@ -224,11 +227,44 @@ export class ConnectionRouter {
   }
 
   /**
-   * 最少连接选择（需要连接池支持）
+   * 最少连接选择
    */
   private leastConnectionsSelect(nodes: DatabaseNode[]): DatabaseNode {
-    // 简化实现：如果没有连接数信息，降级为轮询
-    return this.roundRobinSelect(nodes);
+    let minNode = nodes[0];
+    let minCount = this.activeConnections.get(nodes[0].id) || 0;
+
+    for (let i = 1; i < nodes.length; i++) {
+      const count = this.activeConnections.get(nodes[i].id) || 0;
+      if (count < minCount) {
+        minCount = count;
+        minNode = nodes[i];
+      }
+    }
+
+    return minNode;
+  }
+
+  /**
+   * 增加节点活跃连接计数
+   */
+  acquireConnection(nodeId: string): void {
+    const current = this.activeConnections.get(nodeId) || 0;
+    this.activeConnections.set(nodeId, current + 1);
+  }
+
+  /**
+   * 减少节点活跃连接计数
+   */
+  releaseConnection(nodeId: string): void {
+    const current = this.activeConnections.get(nodeId) || 0;
+    this.activeConnections.set(nodeId, Math.max(0, current - 1));
+  }
+
+  /**
+   * 获取节点活跃连接数
+   */
+  getActiveConnectionCount(nodeId: string): number {
+    return this.activeConnections.get(nodeId) || 0;
   }
 
   /**
@@ -407,13 +443,39 @@ export class ConnectionRouter {
     totalNodes: number;
     healthyNodes: number;
     enabledNodes: number;
+    totalActiveConnections: number;
+    nodeDetails: Array<{
+      id: string;
+      role: NodeRole;
+      healthy: boolean;
+      enabled: boolean;
+      activeConnections: number;
+      lastHealthCheck?: Date;
+    }>;
     config: RouterConfig;
   } {
     const nodes = Array.from(this.nodes.values());
+    let totalActive = 0;
+
+    const nodeDetails = nodes.map((n) => {
+      const active = this.activeConnections.get(n.id) || 0;
+      totalActive += active;
+      return {
+        id: n.id,
+        role: n.role,
+        healthy: n.healthy,
+        enabled: n.enabled,
+        activeConnections: active,
+        lastHealthCheck: n.lastHealthCheck,
+      };
+    });
+
     return {
       totalNodes: nodes.length,
       healthyNodes: nodes.filter((n) => n.healthy).length,
       enabledNodes: nodes.filter((n) => n.enabled).length,
+      totalActiveConnections: totalActive,
+      nodeDetails,
       config: this.config,
     };
   }

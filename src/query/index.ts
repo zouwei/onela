@@ -6,3 +6,6 @@ export * from './operators/index.js';
 export * from './QueryBuilder.js';
 export * from './parsers/SimpleWhereParser.js';
 export * from './parsers/LegacyParser.js';
+export * from './JoinBuilder.js';
+export * from './SubqueryBuilder.js';
+export * from './MetadataQuery.js';

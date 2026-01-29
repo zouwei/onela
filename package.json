@@ -1,6 +1,6 @@
 {
   "name": "onela",
-  "version": "3.1.2-beta.2",
+  "version": "3.2.0",
   "description": "Based on the Node.js open-source ORM framework, it aims to enable seamless integration of a single set of business code with different types of databases.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -36,7 +36,14 @@
     "Postgre",
     "SQLite",
     "SQL Server",
-    "object relational mapper"
+    "Oracle",
+    "MariaDB",
+    "TiDB",
+    "object relational mapper",
+    "database",
+    "hot-switch",
+    "read-write-split",
+    "ai-friendly"
   ],
   "author": "SHIYE",
   "license": "GPL-3.0-only",
