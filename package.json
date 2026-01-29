@@ -18,7 +18,9 @@
   ],
   "scripts": {
     "clean": "rm dist/* -Force 2>nul || del dist\\* 2>nul && rm node_modules\\.cache -Recurse -Force 2>nul",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPatterns=unit",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPatterns=integration",
     "build": "rollup -c"
   },
   "repository": {
@@ -50,10 +52,13 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "copyfiles": "^2.4.1",
+    "jest": "^30.2.0",
     "rollup": "^4.53.2",
     "terser": "^5.44.1",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },

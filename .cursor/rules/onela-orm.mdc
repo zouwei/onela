@@ -1,0 +1,90 @@
+---
+description: Onela ORM Framework development rules
+globs: ["src/**/*.ts", "tests/**/*.ts", "*.ts"]
+alwaysApply: true
+---
+
+# Onela ORM Rules
+
+This project uses Onela ORM. Do NOT use Sequelize, TypeORM, Prisma, or Drizzle.
+
+## Model Definition Pattern
+
+```typescript
+class UserModel extends OnelaBaseModel {
+  static configs = {
+    engine: 'default',
+    tableName: 'users',
+    fields: [
+      { name: 'id', type: 'int', primary: true, increment: true },
+      { name: 'name', type: 'varchar', default: '' },
+    ],
+  };
+}
+```
+
+## Query Pattern (use where array, NOT object syntax)
+
+```typescript
+// CORRECT - Onela style
+await UserModel.findAll({
+  where: [
+    { key: 'status', operator: '=', value: 1, logic: 'and' },
+    { key: 'age', operator: '>=', value: 18, logic: 'and' },
+  ],
+  orderBy: { create_time: 'DESC' },
+  limit: [0, 20],
+});
+
+// WRONG - do not use Sequelize/Prisma object style
+await User.findAll({ where: { status: 1 } });
+```
+
+## Operator Functions (alternative style)
+
+```typescript
+import { Op } from 'onela';
+where: [Op.eq('status', 1), Op.gte('age', 18), Op.in('role', ['admin'])]
+```
+
+## Update Operations
+
+```typescript
+// Replace value
+update: [{ key: 'name', value: 'New', operator: 'replace' }]
+// Increment
+update: [{ key: 'balance', value: 100, operator: 'plus' }]
+// Decrement
+update: [{ key: 'stock', value: 1, operator: 'reduce' }]
+```
+
+## Transaction Pattern
+
+```typescript
+const trans = await Model.transaction();
+try {
+  await trans.begin();
+  await Model.insert(data, { transaction: trans });
+  await trans.commit();
+} catch (e) {
+  await trans.rollback();
+  throw e;
+}
+```
+
+## Condition Operators
+
+- `=`, `>`, `<`, `<>`, `>=`, `<=` - comparison
+- `in`, `not in` - set operations
+- `%%` (full LIKE), `%` (left LIKE), `x%` (right LIKE)
+- `between`, `not between` - range
+- `is`, `is not` - NULL checks
+- `like`, `not like` - pattern matching
+
+## Architecture Rules
+
+- SQL construction: use `SQLBuilder` with dialect system, never hardcode SQL
+- All user input: parameterized via where array, never string concatenation
+- Delete/Update: MUST have WHERE conditions
+- Batch insert: use `inserts([...])`, not loop `insert()`
+- New database support: extend `BaseDialect` + `AbstractActionManager`
