@@ -68,7 +68,7 @@ describe('SQLBuilder Integration Tests', () => {
       });
 
       expect(result.sql).toContain('SELECT id, name, email');
-      expect(result.sql).toContain('FROM users AS t');
+      expect(result.sql).toContain('FROM `users` AS t');
       expect(result.sql).toContain('status = ?');
       expect(result.sql).toContain('age >= ?');
       expect(result.sql).toContain('name LIKE ?');

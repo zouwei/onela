@@ -49,6 +49,17 @@ export interface DeleteBuiltSQL extends BuiltSQL {
 }
 
 /**
+ * 校验标识符（列名/表名），防止 SQL 注入
+ * 允许：字母、数字、下划线、点号（用于 t.id 等）、星号（用于 t.*）
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
+/**
  * SQL 构建器
  */
 export class SQLBuilder {
@@ -91,7 +102,7 @@ export class SQLBuilder {
 
     // === SELECT 字段 ===
     if (params.select && Array.isArray(params.select) && params.select.length > 0) {
-      result.select = params.select.join(', ');
+      result.select = params.select.map(f => validateIdentifier(f)).join(', ');
     } else {
       result.select = 't.*';
     }
@@ -103,7 +114,7 @@ export class SQLBuilder {
 
     // === GROUP BY ===
     if (params.groupBy && Array.isArray(params.groupBy) && params.groupBy.length > 0) {
-      result.groupBy = ` GROUP BY ${params.groupBy.join(', ')}`;
+      result.groupBy = ` GROUP BY ${params.groupBy.map(f => validateIdentifier(f)).join(', ')}`;
     }
 
     // === ORDER BY ===
@@ -112,7 +123,7 @@ export class SQLBuilder {
       for (const field in params.orderBy) {
         const dir = params.orderBy[field];
         if (dir === 'ASC' || dir === 'DESC') {
-          parts.push(`${field} ${dir}`);
+          parts.push(`${validateIdentifier(field)} ${dir}`);
         }
       }
       if (parts.length > 0) {
@@ -129,8 +140,10 @@ export class SQLBuilder {
       this.paramIndex = paginationResult.newIndex;
     }
 
-    // 组装完整 SQL
-    result.sql = `SELECT ${result.select} FROM ${params.configs.tableName} AS t WHERE ${result.where}${result.groupBy}${result.orderBy}${result.limit}`;
+    // 组装完整 SQL（Oracle 不支持表别名 AS 关键字）
+    const tableAlias = this.dialect.getType() === 'oracle' ? 't' : 'AS t';
+    const quotedTable = this.dialect.quoteIdentifier(validateIdentifier(params.configs.tableName));
+    result.sql = `SELECT ${result.select} FROM ${quotedTable} ${tableAlias} WHERE ${result.where}${result.groupBy}${result.orderBy}${result.limit}`;
 
     return result;
   }
@@ -148,7 +161,7 @@ export class SQLBuilder {
       }
 
       const logic = (item.logic || 'and').toUpperCase();
-      const key = item.key;
+      const key = validateIdentifier(item.key);
       const operator = item.operator || '=';
 
       let sql = '';
@@ -161,8 +174,12 @@ export class SQLBuilder {
         case '>=':
         case '<=':
           if (item.format) {
-            // 直接使用值（用于函数调用等）
-            sql = `${key} ${operator} ${item.value}`;
+            // format 模式：值必须为数字或安全函数调用，防止注入
+            const val = String(item.value);
+            if (!/^[a-zA-Z0-9_(). +\-*/]+$/.test(val)) {
+              throw new Error(`Unsafe format value: "${val}"`);
+            }
+            sql = `${key} ${operator} ${val}`;
           } else {
             sql = `${key} ${operator} ${this.nextPlaceholder()}`;
             params.push(item.value);
@@ -278,7 +295,9 @@ export class SQLBuilder {
           continue;
         }
 
-        const caseParts: string[] = [`${caseField.key} = (CASE ${caseField.case_field}`];
+        const safeKey = validateIdentifier(caseField.key);
+        const safeCaseField = validateIdentifier(caseField.case_field);
+        const caseParts: string[] = [`${safeKey} = (CASE ${safeCaseField}`];
 
         for (const caseItem of caseField.case_item) {
           const op = caseItem.operator || 'replace';
@@ -290,10 +309,10 @@ export class SQLBuilder {
               caseParts.push(`WHEN ${whenPlaceholder} THEN ${thenPlaceholder}`);
               break;
             case 'plus':
-              caseParts.push(`WHEN ${whenPlaceholder} THEN ${caseField.key} + ${thenPlaceholder}`);
+              caseParts.push(`WHEN ${whenPlaceholder} THEN ${safeKey} + ${thenPlaceholder}`);
               break;
             case 'reduce':
-              caseParts.push(`WHEN ${whenPlaceholder} THEN ${caseField.key} - ${thenPlaceholder}`);
+              caseParts.push(`WHEN ${whenPlaceholder} THEN ${safeKey} - ${thenPlaceholder}`);
               break;
             default:
               caseParts.push(`WHEN ${whenPlaceholder} THEN ${thenPlaceholder}`);
@@ -302,7 +321,7 @@ export class SQLBuilder {
           result.params.push(caseItem.case_value, caseItem.value);
         }
 
-        caseParts.push(`ELSE ${caseField.key} END)`);
+        caseParts.push(`ELSE ${safeKey} END)`);
         result.set.push(caseParts.join(' '));
       }
       // 普通字段更新
@@ -312,19 +331,20 @@ export class SQLBuilder {
 
         const op = item.operator || 'replace';
         const placeholder = this.nextPlaceholder();
+        const safeKey = validateIdentifier(item.key);
 
         switch (op) {
           case 'replace':
-            result.set.push(`${item.key} = ${placeholder}`);
+            result.set.push(`${safeKey} = ${placeholder}`);
             break;
           case 'plus':
-            result.set.push(`${item.key} = ${item.key} + ${placeholder}`);
+            result.set.push(`${safeKey} = ${safeKey} + ${placeholder}`);
             break;
           case 'reduce':
-            result.set.push(`${item.key} = ${item.key} - ${placeholder}`);
+            result.set.push(`${safeKey} = ${safeKey} - ${placeholder}`);
             break;
           default:
-            result.set.push(`${item.key} = ${placeholder}`);
+            result.set.push(`${safeKey} = ${placeholder}`);
             break;
         }
         result.params.push(item.value);
@@ -337,7 +357,8 @@ export class SQLBuilder {
     result.params.push(...whereResult.params);
 
     // 组装完整 SQL
-    result.sql = `UPDATE ${params.configs.tableName} SET ${result.set.join(', ')} WHERE ${result.where}`;
+    const quotedTable = this.dialect.quoteIdentifier(validateIdentifier(params.configs.tableName));
+    result.sql = `UPDATE ${quotedTable} SET ${result.set.join(', ')} WHERE ${result.where}`;
 
     return result;
   }
@@ -357,7 +378,8 @@ export class SQLBuilder {
     result.where = whereResult.sql;
     result.params = whereResult.params;
 
-    result.sql = `DELETE FROM ${params.configs.tableName} WHERE ${result.where}`;
+    const quotedTable = this.dialect.quoteIdentifier(validateIdentifier(params.configs.tableName));
+    result.sql = `DELETE FROM ${quotedTable} WHERE ${result.where}`;
 
     return result;
   }
@@ -420,7 +442,9 @@ export class SQLBuilder {
     for (const agg of params.aggregate) {
       const fn = aggregateFunctions[agg.function.toLowerCase()];
       if (fn) {
-        selectParts.push(`${fn}(${agg.field}) AS ${agg.name}`);
+        const safeField = agg.field === '*' ? '*' : validateIdentifier(agg.field);
+        const safeName = validateIdentifier(agg.name);
+        selectParts.push(`${fn}(${safeField}) AS ${safeName}`);
       }
     }
 
@@ -428,10 +452,11 @@ export class SQLBuilder {
 
     let groupBy = '';
     if (params.groupBy && params.groupBy.length > 0) {
-      groupBy = ` GROUP BY ${params.groupBy.join(', ')}`;
+      groupBy = ` GROUP BY ${params.groupBy.map(f => validateIdentifier(f)).join(', ')}`;
     }
 
-    const sql = `SELECT ${selectParts.join(', ')} FROM ${params.configs.tableName} WHERE ${whereResult.sql}${groupBy}`;
+    const quotedTable = this.dialect.quoteIdentifier(validateIdentifier(params.configs.tableName));
+    const sql = `SELECT ${selectParts.join(', ')} FROM ${quotedTable} WHERE ${whereResult.sql}${groupBy}`;
 
     return {
       sql,
@@ -446,7 +471,8 @@ export class SQLBuilder {
     this.resetParamIndex();
     const whereResult = this.buildWhereClause(params.keyword || params.where || []);
 
-    const sql = `SELECT COUNT(*) AS total FROM ${params.configs.tableName} WHERE ${whereResult.sql}`;
+    const quotedTable = this.dialect.quoteIdentifier(validateIdentifier(params.configs.tableName));
+    const sql = `SELECT COUNT(*) AS total FROM ${quotedTable} WHERE ${whereResult.sql}`;
 
     return {
       sql,

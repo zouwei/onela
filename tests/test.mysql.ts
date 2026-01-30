@@ -12,10 +12,10 @@ const dbconfig = [
     type: 'mysql' as const,
     value: {
       connectionLimit: 5,
-      host: '127.0.0.1',
-      user: 'test',
-      password: '7t1tusx+pvluIj',
-      database: 'test_db',
+      host: process.env.MYSQL_HOST || '127.0.0.1',
+      user: process.env.MYSQL_USER || 'test',
+      password: process.env.MYSQL_PASSWORD || '',
+      database: process.env.MYSQL_DATABASE || 'test_db',
     },
   },
 ];

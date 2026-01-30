@@ -7,6 +7,16 @@
 import type { KeywordItem } from '../types/onela.js';
 
 /**
+ * 校验标识符，防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
+/**
  * JOIN 类型
  */
 export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'CROSS' | 'FULL';
@@ -61,8 +71,8 @@ export class JoinBuilder {
   private selectFields: Array<{ table: string; field: string; alias?: string }> = [];
 
   constructor(mainTable: string, alias?: string) {
-    this.mainTable = mainTable;
-    this.mainAlias = alias;
+    this.mainTable = validateIdentifier(mainTable);
+    this.mainAlias = alias ? validateIdentifier(alias) : undefined;
   }
 
   /**
@@ -118,7 +128,11 @@ export class JoinBuilder {
    * 添加 SELECT 字段
    */
   select(table: string, field: string, alias?: string): this {
-    this.selectFields.push({ table, field, alias });
+    this.selectFields.push({
+      table: validateIdentifier(table),
+      field: validateIdentifier(field),
+      alias: alias ? validateIdentifier(alias) : undefined,
+    });
     return this;
   }
 
@@ -126,7 +140,7 @@ export class JoinBuilder {
    * 添加表的所有字段
    */
   selectAll(table: string): this {
-    this.selectFields.push({ table, field: '*' });
+    this.selectFields.push({ table: validateIdentifier(table), field: '*' });
     return this;
   }
 
@@ -135,7 +149,12 @@ export class JoinBuilder {
    */
   private addJoin(type: JoinType, table: string, on: JoinOnCondition | JoinOnCondition[], alias?: string): this {
     const conditions = Array.isArray(on) ? on : [on];
-    this.joins.push({ type, table, alias, on: conditions });
+    // 校验 ON 条件中的列名
+    for (const cond of conditions) {
+      if (cond.leftColumn) validateIdentifier(cond.leftColumn);
+      if (cond.rightColumn) validateIdentifier(cond.rightColumn);
+    }
+    this.joins.push({ type, table: validateIdentifier(table), alias: alias ? validateIdentifier(alias) : undefined, on: conditions });
     return this;
   }
 

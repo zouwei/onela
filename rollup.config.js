@@ -4,7 +4,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 
-const external = ['pg', 'mysql', 'sqlite3', 'tedious'];
+const external = ['pg', 'mysql', 'mysql2', 'sqlite3', 'tedious', 'oracledb'];
 
 export default {
   input: 'src/index.ts',

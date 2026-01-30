@@ -66,15 +66,17 @@ export class MySQLActionManagerV2 extends AbstractActionManager {
       return;
     }
 
-    // 情况4: 动态导入 mysql
+    // 情况4: 动态导入 mysql 或 mysql2
     if (!createPool) {
       return import('mysql')
-        .then((module) => {
-          createPool = module.createPool;
+        .catch(() => import('mysql2'))
+        .then((module: any) => {
+          createPool = module.createPool || module.default?.createPool;
+          if (!createPool) throw new Error('Invalid mysql module');
           this._pool = createPool(config);
         })
         .catch(() => {
-          throw new Error('mysql module not found. Install it: npm install mysql');
+          throw new Error('mysql module not found. Install it: npm install mysql or npm install mysql2');
         });
     }
 

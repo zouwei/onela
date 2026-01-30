@@ -246,18 +246,18 @@ export class ConnectionRouter {
 
   /**
    * 增加节点活跃连接计数
+   * 注意：Node.js 单线程模型下同步操作天然原子，
+   * 但若未来引入 Worker Threads 需改用 Atomics
    */
   acquireConnection(nodeId: string): void {
-    const current = this.activeConnections.get(nodeId) || 0;
-    this.activeConnections.set(nodeId, current + 1);
+    this.activeConnections.set(nodeId, (this.activeConnections.get(nodeId) || 0) + 1);
   }
 
   /**
    * 减少节点活跃连接计数
    */
   releaseConnection(nodeId: string): void {
-    const current = this.activeConnections.get(nodeId) || 0;
-    this.activeConnections.set(nodeId, Math.max(0, current - 1));
+    this.activeConnections.set(nodeId, Math.max(0, (this.activeConnections.get(nodeId) || 0) - 1));
   }
 
   /**

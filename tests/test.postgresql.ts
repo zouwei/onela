@@ -10,11 +10,11 @@ const dbconfig = [
     type: "postgresql" as const,           // 不区分大小写
     value: {
         connectionLimit: 5,
-        host:"127.0.0.1",
-        user: "test",
-        port: 3432,
-        password: "test&kjkdj9034",
-        database: "test_db"
+        host: process.env.PG_HOST || "127.0.0.1",
+        user: process.env.PG_USER || "test",
+        port: Number(process.env.PG_PORT) || 5432,
+        password: process.env.PG_PASSWORD || "",
+        database: process.env.PG_DATABASE || "test_db"
     }
   }
 ];

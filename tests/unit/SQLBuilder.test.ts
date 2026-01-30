@@ -24,7 +24,7 @@ describe('SQLBuilder', () => {
         command: { tableName: 'users' },
       });
 
-      expect(result.sql).toContain('SELECT t.* FROM users AS t');
+      expect(result.sql).toContain('SELECT t.* FROM `users` AS t');
       expect(result.sql).toContain('WHERE 1=1');
     });
 
@@ -128,7 +128,7 @@ describe('SQLBuilder', () => {
         ],
       });
 
-      expect(result.sql).toContain('UPDATE users SET name = ?');
+      expect(result.sql).toContain('UPDATE `users` SET name = ?');
       expect(result.sql).toContain('WHERE id = ?');
       expect(result.params).toContain('John');
       expect(result.params).toContain(1);
@@ -183,7 +183,7 @@ describe('SQLBuilder', () => {
         ],
       });
 
-      expect(result.sql).toContain('DELETE FROM users');
+      expect(result.sql).toContain('DELETE FROM `users`');
       expect(result.sql).toContain('WHERE id = ?');
     });
   });

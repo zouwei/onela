@@ -31,10 +31,10 @@ services:
     container_name: onela-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: onela_test
-      MYSQL_USER: test
-      MYSQL_PASSWORD: test123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-onela_test}
+      MYSQL_USER: ${MYSQL_USER:-test}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
     ports:
       - "3306:3306"
     volumes:
@@ -42,7 +42,7 @@ services:
       - ./init/mysql:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,9 +60,9 @@ services:
     container_name: onela-postgresql
     restart: unless-stopped
     environment:
-      POSTGRES_DB: onela_test
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test123
+      POSTGRES_DB: ${PG_DATABASE:-onela_test}
+      POSTGRES_USER: ${PG_USER:-test}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-changeme}
     ports:
       - "5432:5432"
     volumes:
@@ -87,17 +87,17 @@ services:
     container_name: onela-mariadb
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: root123
-      MARIADB_DATABASE: onela_test
-      MARIADB_USER: test
-      MARIADB_PASSWORD: test123
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-changeme}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-onela_test}
+      MARIADB_USER: ${MARIADB_USER:-test}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-changeme}
     ports:
       - "3307:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./init/mariadb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -116,14 +116,14 @@ services:
     restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Test@123456"
+      MSSQL_SA_PASSWORD: "${SQLSERVER_SA_PASSWORD:-Changeme@123}"
       MSSQL_PID: "Developer"
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Test@123456" -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SQLSERVER_SA_PASSWORD:-Changeme@123}" -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
       retries: 5
@@ -141,9 +141,9 @@ services:
     container_name: onela-oracle
     restart: unless-stopped
     environment:
-      ORACLE_PASSWORD: oracle123
-      APP_USER: test
-      APP_USER_PASSWORD: test123
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-changeme}
+      APP_USER: ${ORACLE_USER:-test}
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD:-changeme}
     ports:
       - "1521:1521"
     volumes:

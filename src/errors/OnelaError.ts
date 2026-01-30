@@ -129,7 +129,6 @@ export class OnelaError extends Error {
       tableName: this.tableName,
       context: this.context,
       cause: this.cause?.message,
-      stack: this.stack,
     };
   }
 

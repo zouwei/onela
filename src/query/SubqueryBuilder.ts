@@ -25,6 +25,16 @@ export interface SubqueryDefinition {
 }
 
 /**
+ * 校验标识符，防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z0-9_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
+/**
  * 子查询构建器
  */
 export class SubqueryBuilder {
@@ -38,13 +48,20 @@ export class SubqueryBuilder {
   private _groupBy?: string;
 
   constructor(table: string) {
-    this.table = table;
+    this.table = validateIdentifier(table);
   }
 
   /**
    * 设置查询字段
    */
   select(...fields: string[]): this {
+    // SELECT 字段允许 SQL 表达式（如 COUNT(*)、SUM(amount) AS total），
+    // 但禁止危险字符（分号、注释、引号）
+    for (const f of fields) {
+      if (/[;'"\\]|--/.test(f)) {
+        throw new Error(`Unsafe SQL expression in select: "${f}"`);
+      }
+    }
     this.selectFields = fields;
     return this;
   }
@@ -62,7 +79,7 @@ export class SubqueryBuilder {
    * ORDER BY
    */
   orderBy(field: string, direction: 'ASC' | 'DESC' = 'ASC'): this {
-    this._orderBy = `${field} ${direction}`;
+    this._orderBy = `${validateIdentifier(field)} ${direction}`;
     return this;
   }
 
@@ -86,7 +103,7 @@ export class SubqueryBuilder {
    * GROUP BY
    */
   groupBy(field: string): this {
-    this._groupBy = field;
+    this._groupBy = validateIdentifier(field);
     return this;
   }
 
@@ -127,12 +144,13 @@ export class SubqueryBuilder {
    * 生成 WHERE field IN (SELECT ...) 子句
    */
   toInClause(field: string): SubqueryDefinition {
+    const safeField = validateIdentifier(field);
     const { sql, params } = this.buildSQL();
     return {
       type: 'in',
-      sql: `${field} IN (${sql})`,
+      sql: `${safeField} IN (${sql})`,
       params,
-      field,
+      field: safeField,
     };
   }
 
@@ -140,12 +158,13 @@ export class SubqueryBuilder {
    * 生成 WHERE field NOT IN (SELECT ...) 子句
    */
   toNotInClause(field: string): SubqueryDefinition {
+    const safeField = validateIdentifier(field);
     const { sql, params } = this.buildSQL();
     return {
       type: 'not_in',
-      sql: `${field} NOT IN (${sql})`,
+      sql: `${safeField} NOT IN (${sql})`,
       params,
-      field,
+      field: safeField,
     };
   }
 
@@ -177,12 +196,13 @@ export class SubqueryBuilder {
    * 作为标量子查询使用（用于 SELECT 中）
    */
   toScalar(alias: string): SubqueryDefinition {
+    const safeAlias = validateIdentifier(alias);
     const { sql, params } = this.buildSQL();
     return {
       type: 'scalar',
-      sql: `(${sql}) AS ${alias}`,
+      sql: `(${sql}) AS ${safeAlias}`,
       params,
-      alias,
+      alias: safeAlias,
     };
   }
 
@@ -190,12 +210,13 @@ export class SubqueryBuilder {
    * 作为 FROM 子查询使用
    */
   toFromClause(alias: string): SubqueryDefinition {
+    const safeAlias = validateIdentifier(alias);
     const { sql, params } = this.buildSQL();
     return {
       type: 'from',
-      sql: `(${sql}) AS ${alias}`,
+      sql: `(${sql}) AS ${safeAlias}`,
       params,
-      alias,
+      alias: safeAlias,
     };
   }
 

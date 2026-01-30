@@ -50,17 +50,19 @@ class MySQLActionManager extends BaseActionManager {
       return;
     }
 
-    // 情况4: 动态导入 mysql
+    // 情况4: 动态导入 mysql 或 mysql2
     if (!createPool) {
       return import('mysql')
-        .then((module) => {
-          createPool = module.createPool;
+        .catch(() => import('mysql2'))
+        .then((module: any) => {
+          createPool = module.createPool || module.default?.createPool;
+          if (!createPool) throw new Error('Invalid mysql module');
           const pool = createPool(config);
           this.conn = pool;
         })
         .catch((err) => {
-          console.error('Failed to import mysql. Please install it: npm install mysql');
-          throw new Error('mysql module not found. Install it in your project: npm install mysql');
+          console.error('Failed to import mysql/mysql2. Please install one: npm install mysql or npm install mysql2');
+          throw new Error('mysql module not found. Install it: npm install mysql or npm install mysql2');
         });
     }
 
