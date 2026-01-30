@@ -1,6 +1,6 @@
 # Onela ORM
 
-> 世界级自适应关系型数据库热切换 ORM 框架，一套业务代码无缝接入 7+ 种数据库。
+> 世界级自适应关系型数据库热切换 ORM 框架，一套业务代码无缝接入 9+ 种数据库。
 
 [![npm](https://img.shields.io/npm/v/onela?color=success)](https://npmjs.com/package/onela)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue?logo=typescript)](https://npmjs.com/package/onela)
@@ -10,7 +10,7 @@
 
 ## 特性
 
-- **7+ 数据库支持** - MySQL / MariaDB / TiDB / PostgreSQL / SQLite / SQL Server / Oracle / OceanBase / PolarDB
+- **9+ 数据库支持** - MySQL / MariaDB / TiDB / PostgreSQL / SQLite / SQL Server / Oracle / OceanBase / PolarDB
 - **热切换** - 运行时无缝切换数据库连接，零停机
 - **读写分离** - 自动路由读写请求，支持 4 种负载均衡策略
 - **故障转移** - 自动检测故障节点并切换，支持健康检查
@@ -31,8 +31,9 @@ npm install onela
 ```bash
 npm install mysql2       # MySQL / MariaDB / TiDB / OceanBase / PolarDB
 npm install pg           # PostgreSQL
-npm install sqlite3      # SQLite
-npm install tedious      # SQL Server
+npm install better-sqlite3  # SQLite（推荐）
+npm install sqlite3         # SQLite（异步）
+npm install tedious         # SQL Server
 npm install oracledb     # Oracle
 ```
 
@@ -44,6 +45,7 @@ npm install oracledb     # Oracle
 import { Onela, OnelaBaseModel } from 'onela';
 import type { Configs } from 'onela';
 
+// 推荐：使用 V2 适配器（基于统一 SQLBuilder 架构）
 Onela.init([
   {
     engine: 'default',
@@ -57,7 +59,7 @@ Onela.init([
       connectionLimit: 10,
     },
   },
-]);
+], { useV2: true });
 ```
 
 ### 2. 定义 Model
@@ -539,6 +541,16 @@ const sizeSQL = meta.getTableSizeSQL('users');
 | `like` / `not like` | LIKE | `'%test%'` |
 | `is` / `is not` | NULL 判断 | `'NULL'` |
 | `regexp` / `~` | 正则 | `'^A'` |
+
+## V1 → V2 迁移
+
+v4.0 起，V1 适配器已标记为 `@deprecated`，将在 v5.0 移除。详见 [Migration Guide](doc/migration-v1-to-v2.md)。
+
+**关键变更：**
+- 初始化时传入 `{ useV2: true }` 启用 V2 适配器
+- V2 基于统一的 `SQLBuilder` + `AbstractActionManager` 架构，SQL 构建集中化
+- V1 的 `format` 属性已废弃（安全风险），建议使用参数化查询
+- `$raw` 操作符已禁用
 
 ## 项目结构
 

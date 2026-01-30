@@ -1,7 +1,7 @@
 {
   "name": "onela",
   "version": "4.0.0",
-  "description": "Based on the Node.js open-source ORM framework, it aims to enable seamless integration of a single set of business code with different types of databases.",
+  "description": "Adaptive multi-database ORM framework for Node.js/TypeScript. One codebase, 9+ databases (MySQL, PostgreSQL, SQLite, SQL Server, Oracle, MariaDB, TiDB, OceanBase, PolarDB). Hot-switch, read-write split, failover, schema management, and security built-in.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

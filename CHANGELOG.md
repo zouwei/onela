@@ -1,5 +1,45 @@
 # Changelog
 
+## [4.0.0] - 2026-01-30
+
+### ⚠ BREAKING CHANGES
+
+- **构建入口切换至 V2** - `rollup.config.js` 入口从 `src/index.ts` 切换为 `src/index.v2.ts`，完整导出 V2 架构所有模块
+- **V1 代码路径标记 @deprecated** - 所有 V1 ActionManager（MySQLActionManager / PostgreSQLActionManager / SQLServerActionManager / SQLiteActionManager）及 OFInstance 已标记为废弃，将在 v5.0 移除
+- **format 属性收紧** - `format` 属性正则从 `/^[a-zA-Z0-9_(). +\-*/]+$/` 收紧为 `/^[a-zA-Z0-9_.]+$/`，不再允许括号、空格和算术运算符
+- **$raw 操作符禁用** - SimpleWhereParser 中的 `$raw` 操作符已禁用并抛出异常
+
+### Security (安全加固)
+
+#### P1 - 关键路径校验
+- **tableName 校验** - 所有 V1 ActionManager 和 OFInstance 的 CRUD 方法均对 `params.configs.tableName` 进行 `validateIdentifier()` 校验，防止 SQL 注入
+- **aggregate field/name 校验** - 聚合函数的 `field` 和 `name` 参数均通过 `validateIdentifier()` 校验
+- **INSERT 字段名校验** - INSERT/INSERTS 方法中的字段名（key）通过 `validateIdentifier()` 校验
+- **SELECT 字段校验** - 四个语法文件（mysql.ts / postgresql.ts / sqlite.ts / sqlserver.ts）的 `getParameters()` 中 SELECT 字段均通过 `validateIdentifier()` 校验
+
+#### P2 - 中等优先级
+- **format 属性收紧** - SQLBuilder 和 postgresql.ts 中的 format 正则表达式收紧为仅允许字母数字下划线点号，并标记 @deprecated
+- **proc_name 校验** - OFInstance 的 `call()` 方法对存储过程名进行校验
+- **SubqueryBuilder 标识符正则修正** - 正则从 `^[a-zA-Z0-9_*]` 改为 `^[a-zA-Z_*]`，禁止数字开头的标识符
+
+#### P3 - 低优先级
+- **console.log 数据泄露清理** - 移除 PostgreSQLActionManager 中的 INSERT/UPDATE/查询数据日志输出
+- **DDLBuilder engine/charset/collation 校验** - 新增 `/^[a-zA-Z][a-zA-Z0-9_]*$/` 校验
+- **测试文档凭据清理** - testing-guide.md 中的硬编码密码替换为环境变量引用
+
+### Fixed
+
+- **PostgreSQL IN 操作符 Bug** - 修复 postgresql.ts 中 `for (const _ of item.value)` 错误迭代（将数组元素当作索引），改为 `for (let i = 0; i < item.value.length; i++)` 正确遍历，影响 getParameters / getUpdateParameters / getDeleteParameters 三个函数
+- **IS/IS NOT 操作符白名单** - 仅允许 NULL 值，防止绕过
+
+### Changed
+
+- **构建入口** - Rollup 入口从 `src/index.ts` 切换为 `src/index.v2.ts`
+- **外部依赖** - Rollup external 新增 `better-sqlite3`
+- **版本号** - 升级至 4.0.0
+
+---
+
 ## [3.2.0] - 2026-01-29
 
 ### Added
