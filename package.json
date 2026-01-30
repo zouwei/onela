@@ -1,7 +1,7 @@
 {
   "name": "onela",
-  "version": "3.1.2-beta.2",
-  "description": "Based on the Node.js open-source ORM framework, it aims to enable seamless integration of a single set of business code with different types of databases.",
+  "version": "4.0.0",
+  "description": "Adaptive multi-database ORM framework for Node.js/TypeScript. One codebase, 9+ databases (MySQL, PostgreSQL, SQLite, SQL Server, Oracle, MariaDB, TiDB, OceanBase, PolarDB). Hot-switch, read-write split, failover, schema management, and security built-in.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -18,7 +18,9 @@
   ],
   "scripts": {
     "clean": "rm dist/* -Force 2>nul || del dist\\* 2>nul && rm node_modules\\.cache -Recurse -Force 2>nul",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPatterns=unit",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --testPathPatterns=integration",
     "build": "rollup -c"
   },
   "repository": {
@@ -34,7 +36,14 @@
     "Postgre",
     "SQLite",
     "SQL Server",
-    "object relational mapper"
+    "Oracle",
+    "MariaDB",
+    "TiDB",
+    "object relational mapper",
+    "database",
+    "hot-switch",
+    "read-write-split",
+    "ai-friendly"
   ],
   "author": "SHIYE",
   "license": "GPL-3.0-only",
@@ -50,10 +59,18 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
+    "better-sqlite3": "^12.6.2",
     "copyfiles": "^2.4.1",
+    "jest": "^30.2.0",
+    "mysql2": "^3.16.2",
+    "oracledb": "^6.10.0",
+    "pg": "^8.17.2",
     "rollup": "^4.53.2",
+    "sqlite3": "^5.1.7",
     "terser": "^5.44.1",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },

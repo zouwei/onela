@@ -3,14 +3,25 @@
  * 通用模块 - 数据库实例服务
  * author: zack zou
  * create time: 2016-06-27
+ * @deprecated 请使用 V2 版本（Onela + OnelaBaseModel），此模块将在未来版本移除
  */
 
 import * as mysqlGrammar from './grammar/mysql.js';
 import type { DBSource, OODBC, Command, CallParas, ProcParam,Transaction, QueryParams,QueryOption , UpdateParams,  UpdateFieldItem , UpdateCaseItem, UpdateCaseField,InsertParams, DeleteParams, AggregateItem } from './types/onela.js';
 
+/**
+ * 校验标识符，防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
 
-
-// === 数据库实例类 ===
+/**
+ * @deprecated 请使用 V2 版本（Onela + OnelaBaseModel），此类将在未来版本移除
+ */
 class Service {
   public database: string;
   public db: DBSource;
@@ -57,8 +68,9 @@ class Service {
     const factory: Record<string, () => Promise<{ data: any[] }>> = {
       MYSQL: () => {
         return new Promise((resolve, reject) => {
+          const tableName = validateIdentifier(paras.command.tableName);
           const p = mysqlGrammar.getParameters(paras);
-          const sql = `SELECT ${p.select} FROM ${paras.command.tableName} AS t ${p.where} ${p.orderBy}${p.limit};`;
+          const sql = `SELECT ${p.select} FROM ${tableName} AS t ${p.where} ${p.orderBy}${p.limit};`;
 
           this.execute(db.READER, sql, p.parameters)
             .then(doc => resolve({ data: doc }))
@@ -87,11 +99,12 @@ class Service {
     const factory: Record<string, () => Promise<any>> = {
       MYSQL: () => {
         return new Promise((resolve, reject) => {
+          const tableName = validateIdentifier(paras.command.tableName);
           const p = mysqlGrammar.getParameters(paras);
           const result = { data: [] as any[], recordsTotal: 0 };
 
-          const sql = `SELECT ${p.select} FROM ${paras.command.tableName} t ${p.where} ${p.orderBy}${p.limit};`;
-          const countSql = `SELECT COUNT(0) total FROM ${paras.command.tableName} t ${p.where};`;
+          const sql = `SELECT ${p.select} FROM ${tableName} t ${p.where} ${p.orderBy}${p.limit};`;
+          const countSql = `SELECT COUNT(0) total FROM ${tableName} t ${p.where};`;
 
           this.execute(db.READER, sql, p.parameters)
             .then(doc => {
@@ -127,8 +140,9 @@ class Service {
     const factory: Record<string, () => Promise<any[]>> = {
       MYSQL: () => {
         return new Promise((resolve, reject) => {
+          const tableName = validateIdentifier(paras.command.tableName);
           const p = mysqlGrammar.getParameters(paras);
-          const sql = `SELECT ${p.select} FROM ${paras.command.tableName} AS t ${p.where} ${p.orderBy}${p.limit};`;
+          const sql = `SELECT ${p.select} FROM ${tableName} AS t ${p.where} ${p.orderBy}${p.limit};`;
 
           this.execute(db.READER, sql, p.parameters)
             .then(resolve)
@@ -157,9 +171,11 @@ class Service {
     const factory: Record<string, () => Promise<any>> = {
       MYSQL: () => {
         return new Promise((resolve, reject) => {
+          const tableName = validateIdentifier(paras.command.tableName);
           const field = paras.command.aggregate || '1';
-          const p = mysqlGrammar.getParameters({ ...paras, select: [`COUNT(${field}) AS total`] });
-          const sql = `SELECT COUNT(${field}) AS total FROM ${paras.command.tableName} AS t ${p.where};`;
+          const safeField = validateIdentifier(String(field));
+          const p = mysqlGrammar.getParameters({ ...paras, select: [`COUNT(${safeField}) AS total`] });
+          const sql = `SELECT COUNT(${safeField}) AS total FROM ${tableName} AS t ${p.where};`;
 
           this.execute(db.READER, sql, p.parameters)
             .then(doc => resolve(doc[0]))
@@ -202,6 +218,7 @@ class Service {
            * 参数处理
            * p：参数值集合，f字段名称集合，s占位参数符号
            */
+          const safeTableName = validateIdentifier(paras.command.tableName);
           var p = [], f = [], s = [];
           /**
            * 这是个数组，数组内部是实体对象的字段
@@ -213,7 +230,7 @@ class Service {
               for (var j in insertion[i]) {
                   if (i == 0) {
                       //字段名称集合，大于0就不需要继续了
-                      f.push("`" + j + "`");
+                      f.push("`" + validateIdentifier(j) + "`");
                   }
                   //参数值
                   p.push(paras.insertion[i][j]);
@@ -224,7 +241,7 @@ class Service {
               s.push('(' + s2.join(',') + ')');
           }
           //SQL执行
-          var sql = "insert into " + paras.command.tableName + "(" + f.join(',') + ") values" + s.join(',') + ";";
+          var sql = "insert into " + safeTableName + "(" + f.join(',') + ") values" + s.join(',') + ";";
           console.log(sql);
           
           this.execute(db.WRITER, sql, p)
@@ -269,6 +286,7 @@ class Service {
     const factory: Record<string, () => Promise<any>> = {
       MYSQL: () => {
         return new Promise((resolve, reject) => {
+          const tableName = validateIdentifier(paras.command.tableName);
           const p = mysqlGrammar.getUpdateParameters(paras);
           let limitSql = '';
           if (paras.limit != null) {
@@ -276,7 +294,7 @@ class Service {
             p.parameters.push(paras.limit);
           }
 
-          const sql = `UPDATE ${paras.command.tableName} SET ${p.set.join(',')} WHERE ${p.where}${limitSql};`;
+          const sql = `UPDATE ${tableName} SET ${p.set.join(',')} WHERE ${p.where}${limitSql};`;
 
           this.execute(db.WRITER, sql, p.parameters)
             .then(resolve)
@@ -310,8 +328,9 @@ class Service {
             return;
           }
 
+          const tableName = validateIdentifier(paras.command.tableName);
           const p = mysqlGrammar.getDeleteParameters(paras);
-          const sql = `DELETE FROM ${paras.command.tableName} WHERE ${p.where};`;
+          const sql = `DELETE FROM ${tableName} WHERE ${p.where};`;
 
           this.execute(db.WRITER, sql, p.parameters)
             .then(resolve)
@@ -382,7 +401,7 @@ class Service {
             return;
           }
 
-          _self.call = `CALL ${paras.proc_name}(${_self.parameter.join(', ')});`;
+          _self.call = `CALL ${validateIdentifier(paras.proc_name)}(${_self.parameter.join(', ')});`;
 
           this.execute(db.READER, _self.call, _self.values)
             .then(resolve)

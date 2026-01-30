@@ -9,11 +9,11 @@ let dbconfig = [{
     "type": "sqlserver" as const,        // 数据库类型
     "value": {
         // "connectionLimit": 5,
-        "host": "127.0.0.1",
-        "port": 3433,
-        "user": "onela",
-        "password": "onela@123",
-        "database": "test_db"
+        "host": process.env.SQLSERVER_HOST || "127.0.0.1",
+        "port": Number(process.env.SQLSERVER_PORT) || 1433,
+        "user": process.env.SQLSERVER_USER || "sa",
+        "password": process.env.SQLSERVER_PASSWORD || "",
+        "database": process.env.SQLSERVER_DATABASE || "test_db"
     }
 }];
 

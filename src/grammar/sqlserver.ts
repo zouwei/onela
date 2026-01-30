@@ -1,5 +1,14 @@
 import type { KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField , DeleteParams} from '../types/onela.js';
 
+/**
+ * 校验标识符（列名），防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
 
 /**
  * SQL Server - 命令行参数处理
@@ -169,7 +178,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
 
   // === SELECT ===
   if (paras.select && Array.isArray(paras.select)) {
-    _self.select = paras.select.length === 0 ? 't.*' : paras.select.join(',');
+    _self.select = paras.select.length === 0 ? 't.*' : paras.select.map(f => validateIdentifier(f)).join(',');
   } else {
     _self.select = 't.*';
   }
@@ -178,6 +187,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
   if (paras.orderBy && typeof paras.orderBy === 'object') {
     const parts: string[] = [];
     for (const field in paras.orderBy) {
+      validateIdentifier(field);
       const dir = paras.orderBy[field];
       if (dir === 'ASC' || dir === 'DESC') {
         parts.push(`${field} ${dir}`);
@@ -205,7 +215,8 @@ const getParameters = function (paras: QueryParams): QueryResult {
     const operator = item.operator || '=';
     index++;
 
-    _self.where += ` ${logic} ${item.key} `;
+    const safeKey = validateIdentifier(item.key);
+    _self.where += ` ${logic} ${safeKey} `;
 
     switch (operator) {
       case '=':
@@ -214,9 +225,9 @@ const getParameters = function (paras: QueryParams): QueryResult {
       case '<>':
       case '>=':
       case '<=':
-        _self.where += `${operator}@${item.key}${index}`;
+        _self.where += `${operator}@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });
@@ -226,12 +237,12 @@ const getParameters = function (paras: QueryParams): QueryResult {
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
           const placeholders: string[] = [];
-          for (const _ of item.value) {
-            placeholders.push(`@${item.key}${index}`);
+          for (let i = 0; i < item.value.length; i++) {
+            placeholders.push(`@${safeKey}${index}`);
             _self.parameters.push({
-              name: `${item.key}${index}`,
+              name: `${safeKey}${index}`,
               sqlType: sqlTypeHandle(item.sqlType),
-              value: item.value[_],
+              value: item.value[i],
             });
             index++;
           }
@@ -242,45 +253,43 @@ const getParameters = function (paras: QueryParams): QueryResult {
         break;
 
       case '%':
-        _self.where += `like @${item.key}${index}`;
+        _self.where += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}`,
         });
         break;
 
       case 'x%':
-        _self.where += `like @${item.key}${index}`;
+        _self.where += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `${item.value}%`,
         });
         break;
 
       case '%%':
-        _self.where += `like @${item.key}${index}`;
+        _self.where += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}%`,
         });
         break;
 
       case 'is':
-        _self.where += `is @${item.key}${index}`;
-        _self.parameters.push({
-          name: `${item.key}${index}`,
-          sqlType: sqlTypeHandle(item.sqlType),
-          value: item.value,
-        });
+        if (item.value !== null && !(typeof item.value === 'string' && item.value.toUpperCase() === 'NULL')) {
+          throw new Error('IS operator only supports NULL value');
+        }
+        _self.where += 'is NULL';
         break;
 
       default:
-        _self.where += `=@${item.key}${index}`;
+        _self.where += `=@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });
@@ -328,6 +337,8 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
 
     if ('case_field' in updateItem && 'case_item' in updateItem) {
       const { key, case_field, case_item } = updateItem as UpdateCaseField;
+      validateIdentifier(key);
+      validateIdentifier(case_field);
       if (!Array.isArray(case_item) || case_item.length === 0) continue;
 
       const caseParts: string[] = [`${key}= (CASE ${case_field}`];
@@ -361,37 +372,38 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
       _self.set.push(caseParts.join(' '));
     } else {
       const item = updateItem as UpdateFieldItem;
+      const safeKey = validateIdentifier(item.key);
       const op = item.operator || 'replace';
 
       switch (op) {
         case 'replace':
-          _self.set.push(`${item.key}=@${item.key}${index}`);
+          _self.set.push(`${safeKey}=@${safeKey}${index}`);
           _self.parameters.push({
-            name: `${item.key}${index}`,
+            name: `${safeKey}${index}`,
             sqlType: sqlTypeHandle(item.sqlType),
             value: item.value,
           });
           break;
         case 'plus':
-          _self.set.push(`${item.key}=${item.key} + @${item.key}${index}`);
+          _self.set.push(`${safeKey}=${safeKey} + @${safeKey}${index}`);
           _self.parameters.push({
-            name: `${item.key}${index}`,
+            name: `${safeKey}${index}`,
             sqlType: sqlTypeHandle(item.sqlType),
             value: item.value,
           });
           break;
         case 'reduce':
-          _self.set.push(`${item.key}=${item.key} - @${item.key}${index}`);
+          _self.set.push(`${safeKey}=${safeKey} - @${safeKey}${index}`);
           _self.parameters.push({
-            name: `${item.key}${index}`,
+            name: `${safeKey}${index}`,
             sqlType: sqlTypeHandle(item.sqlType),
             value: item.value,
           });
           break;
         default:
-          _self.set.push(`${item.key}=@${item.key}${index}`);
+          _self.set.push(`${safeKey}=@${safeKey}${index}`);
           _self.parameters.push({
-            name: `${item.key}${index}`,
+            name: `${safeKey}${index}`,
             sqlType: sqlTypeHandle(item.sqlType),
             value: item.value,
           });
@@ -417,7 +429,8 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
     const operator = item.operator || '=';
     index++;
 
-    let sql = ` ${logic} ${item.key} `;
+    const safeKey = validateIdentifier(item.key);
+    let sql = ` ${logic} ${safeKey} `;
 
     switch (operator) {
       case '=':
@@ -426,9 +439,9 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
       case '<>':
       case '>=':
       case '<=':
-        sql += `${operator}@${item.key}${index}`;
+        sql += `${operator}@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });
@@ -438,12 +451,12 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
           const placeholders: string[] = [];
-          for (const _ of item.value) {
-            placeholders.push(`@${item.key}${index}`);
+          for (let i = 0; i < item.value.length; i++) {
+            placeholders.push(`@${safeKey}${index}`);
             _self.parameters.push({
-              name: `${item.key}${index}`,
+              name: `${safeKey}${index}`,
               sqlType: sqlTypeHandle(item.sqlType),
-              value: item.value[_],
+              value: item.value[i],
             });
             index++;
           }
@@ -454,34 +467,34 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
         break;
 
       case '%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}`,
         });
         break;
       case 'x%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `${item.value}%`,
         });
         break;
       case '%%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}%`,
         });
         break;
 
       default:
-        sql += `=@${item.key}${index}`;
+        sql += `=@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });
@@ -533,7 +546,8 @@ const getDeleteParameters = function (paras: DeleteParams): DeleteResult {
     const operator = item.operator || '=';
     index++;
 
-    let sql = ` ${logic} ${item.key} `;
+    const safeKey = validateIdentifier(item.key);
+    let sql = ` ${logic} ${safeKey} `;
 
     switch (operator) {
       case '=':
@@ -542,9 +556,9 @@ const getDeleteParameters = function (paras: DeleteParams): DeleteResult {
       case '<>':
       case '>=':
       case '<=':
-        sql += `${operator}@${item.key}${index}`;
+        sql += `${operator}@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });
@@ -554,12 +568,12 @@ const getDeleteParameters = function (paras: DeleteParams): DeleteResult {
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
           const placeholders: string[] = [];
-          for (const _ of item.value) {
-            placeholders.push(`@${item.key}${index}`);
+          for (let i = 0; i < item.value.length; i++) {
+            placeholders.push(`@${safeKey}${index}`);
             _self.parameters.push({
-              name: `${item.key}${index}`,
+              name: `${safeKey}${index}`,
               sqlType: sqlTypeHandle(item.sqlType),
-              value: item.value[_],
+              value: item.value[i],
             });
             index++;
           }
@@ -570,34 +584,34 @@ const getDeleteParameters = function (paras: DeleteParams): DeleteResult {
         break;
 
       case '%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}`,
         });
         break;
       case 'x%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `${item.value}%`,
         });
         break;
       case '%%':
-        sql += `like @${item.key}${index}`;
+        sql += `like @${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: `%${item.value}%`,
         });
         break;
 
       default:
-        sql += `=@${item.key}${index}`;
+        sql += `=@${safeKey}${index}`;
         _self.parameters.push({
-          name: `${item.key}${index}`,
+          name: `${safeKey}${index}`,
           sqlType: sqlTypeHandle(item.sqlType),
           value: item.value,
         });

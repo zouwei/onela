@@ -1,6 +1,7 @@
 /**
  * SQLite 对象关系实例
  * 单例数据库操作管理者，负责 SQLite 的基本 CRUD
+ * @deprecated 请使用 V2 版本 SQLiteActionManagerV2，V1 版本将在未来版本移除
  */
 
 import { BaseActionManager } from '../BaseActionManager.js';
@@ -19,8 +20,19 @@ import type {
 } from '../types/onela.js';
 
 /**
+ * 校验标识符，防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
+/**
  * SQLite 单例操作管理器
  * 支持动态注入 sqlite3 模块或 Database 实例（不强制依赖）
+ * @deprecated 请使用 SQLiteActionManagerV2，V1 版本将在未来版本移除
  */
 class SQLiteActionManager extends BaseActionManager {
   private static conn: any = null;
@@ -180,8 +192,9 @@ class SQLiteActionManager extends BaseActionManager {
   // ====================== CRUD 方法 ======================
 
   static findAll(params: QueryParams, option: QueryOption = { transaction: null }): Promise<any> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const p = GrammarSqlite.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'get')
@@ -193,9 +206,10 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static findList(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; recordsTotal: any }> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const p = GrammarSqlite.getParameters(params);
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
-    const countSql = `SELECT COUNT(0) AS total FROM ${params.configs.tableName} t ${p.where};`;
+    const sql = `SELECT ${p.select} FROM ${tableName} t ${p.where} ${p.orderBy} ${p.limit};`;
+    const countSql = `SELECT COUNT(0) AS total FROM ${tableName} t ${p.where};`;
 
     const exec = option.transaction
       ? (q: string, params: any[], mode: 'all' | 'get') => this.executeTransaction(q, params, option.transaction!, mode)
@@ -215,10 +229,11 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static find(params: QueryParams, option: QueryOption = { transaction: null }): Promise<{ data: any[]; isLastPage: boolean }> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const limit = params.limit || [0, 10];
     const fetchCount = limit[1] + 1;
     const p = GrammarSqlite.getParameters({ ...params, limit: [limit[0], fetchCount] });
-    const sql = `SELECT ${p.select} FROM ${params.configs.tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
+    const sql = `SELECT ${p.select} FROM ${tableName} AS t ${p.where} ${p.orderBy} ${p.limit};`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')
@@ -238,16 +253,17 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static insert(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const insertion = params.insertion as Record<string, any>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
 
     for (const key in insertion) {
-      f.push(`\`${key}\``);
+      f.push(`\`${validateIdentifier(key)}\``);
       s.push('?');
       p.push(insertion[key]);
     }
 
-    const sql = `INSERT INTO ${params.configs.tableName} (${f.join(', ')}) VALUES (${s.join(', ')});`;
+    const sql = `INSERT INTO ${tableName} (${f.join(', ')}) VALUES (${s.join(', ')});`;
 
     return (option.transaction
       ? this.executeTransaction(sql, p, option.transaction, 'run')
@@ -256,6 +272,7 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static inserts(params: InsertParams, option: QueryOption = { transaction: null }): Promise<any> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const list = params.insertion as Array<Record<string, any>>;
     const p: any[] = [], f: string[] = [], s: string[] = [];
 
@@ -263,14 +280,14 @@ class SQLiteActionManager extends BaseActionManager {
       const item = list[i];
       const s2: string[] = [];
       for (const key in item) {
-        if (i === 0) f.push(`\`${key}\``);
+        if (i === 0) f.push(`\`${validateIdentifier(key)}\``);
         p.push(item[key]);
         s2.push('?');
       }
       s.push(`(${s2.join(', ')})`);
     }
 
-    const sql = `INSERT INTO ${params.configs.tableName} (${f.join(', ')}) VALUES ${s.join(', ')};`;
+    const sql = `INSERT INTO ${tableName} (${f.join(', ')}) VALUES ${s.join(', ')};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p, option.transaction, 'run')
@@ -282,8 +299,9 @@ class SQLiteActionManager extends BaseActionManager {
       return Promise.reject('Deletion conditions required to prevent full table deletion.');
     }
 
+    const tableName = validateIdentifier(params.configs.tableName);
     const p = GrammarSqlite.getDeleteParameters(params);
-    const sql = `DELETE FROM ${params.configs.tableName} WHERE ${p.where};`;
+    const sql = `DELETE FROM ${tableName} WHERE ${p.where};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction, 'run')
@@ -291,6 +309,7 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static update(params: UpdateParams, option: QueryOption = { transaction: null }): Promise<any> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const p = GrammarSqlite.getUpdateParameters(params);
     let limitSql = '';
     if (params.limit) {
@@ -298,7 +317,7 @@ class SQLiteActionManager extends BaseActionManager {
       p.parameters.push(params.limit);
     }
 
-    const sql = `UPDATE ${params.configs.tableName} SET ${p.set.join(', ')} WHERE ${p.where} ${limitSql};`;
+    const sql = `UPDATE ${tableName} SET ${p.set.join(', ')} WHERE ${p.where} ${limitSql};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters, option.transaction, 'run')
@@ -306,16 +325,17 @@ class SQLiteActionManager extends BaseActionManager {
   }
 
   static aggregate(params: QueryParams & { aggregate: AggregateItem[] }, option: QueryOption = { transaction: null }): Promise<any> {
+    const tableName = validateIdentifier(params.configs.tableName);
     const p = GrammarSqlite.getParameters(params);
     const check: Record<string, string> = { count: 'COUNT', sum: 'SUM', max: 'MAX', min: 'MIN', abs: 'ABS', avg: 'AVG' };
     const show: string[] = [];
 
     for (const agg of params.aggregate) {
       const fn = check[agg.function.toLowerCase()];
-      if (fn) show.push(`${fn}(${agg.field}) AS ${agg.name}`);
+      if (fn) show.push(`${fn}(${validateIdentifier(agg.field)}) AS ${validateIdentifier(agg.name)}`);
     }
 
-    const sql = `SELECT ${show.join(', ')} FROM ${params.configs.tableName} ${p.where} ${p.limit};`;
+    const sql = `SELECT ${show.join(', ')} FROM ${tableName} ${p.where} ${p.limit};`;
 
     return option.transaction
       ? this.executeTransaction(sql, p.parameters!, option.transaction, 'all')

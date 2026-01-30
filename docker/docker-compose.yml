@@ -1,0 +1,220 @@
+##################################################
+# Onela ORM Framework - 多数据库测试环境
+#
+# 使用方法:
+#   启动所有数据库: docker-compose up -d
+#   停止所有数据库: docker-compose down
+#   查看日志: docker-compose logs -f
+#
+# 内存需求:
+#   MySQL: 1GB
+#   PostgreSQL: 1GB
+#   SQLite: 50MB (使用卷)
+#   SQL Server: 2GB
+#   Oracle XE: 2GB
+#   MariaDB: 512MB
+#   TiDB: 2GB
+#   总计: ~9GB
+##################################################
+
+version: '3.8'
+
+services:
+  ##################################################
+  # MySQL 8.0
+  # 端口: 3306
+  # 用户: test / test123
+  # 数据库: onela_test
+  ##################################################
+  mysql:
+    image: mysql:8.0
+    container_name: onela-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-onela_test}
+      MYSQL_USER: ${MYSQL_USER:-test}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init/mysql:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # PostgreSQL 15
+  # 端口: 5432
+  # 用户: test / test123
+  # 数据库: onela_test
+  ##################################################
+  postgresql:
+    image: postgres:15
+    container_name: onela-postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DATABASE:-onela_test}
+      POSTGRES_USER: ${PG_USER:-test}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/postgresql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d onela_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # MariaDB 10.11
+  # 端口: 3307
+  # 用户: test / test123
+  # 数据库: onela_test
+  ##################################################
+  mariadb:
+    image: mariadb:10.11
+    container_name: onela-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-changeme}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-onela_test}
+      MARIADB_USER: ${MARIADB_USER:-test}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-changeme}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init/mariadb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # SQL Server 2022
+  # 端口: 1433
+  # 用户: sa / Test@123456
+  # 数据库: onela_test
+  ##################################################
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: onela-sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQLSERVER_SA_PASSWORD:-Changeme@123}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SQLSERVER_SA_PASSWORD:-Changeme@123}" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # Oracle XE 21c
+  # 端口: 1521
+  # 用户: system / oracle123
+  # SID: XE
+  ##################################################
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: onela-oracle
+    restart: unless-stopped
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-changeme}
+      APP_USER: ${ORACLE_USER:-test}
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD:-changeme}
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./init/oracle:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # TiDB (MySQL 兼容)
+  # 端口: 4000
+  # 用户: root / 无密码
+  # 数据库: onela_test
+  ##################################################
+  tidb:
+    image: pingcap/tidb:latest
+    container_name: onela-tidb
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    volumes:
+      - tidb_data:/tmp/tidb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10080/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+  ##################################################
+  # Redis (用于缓存测试)
+  # 端口: 6379
+  ##################################################
+  redis:
+    image: redis:7
+    container_name: onela-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - onela-network
+
+##################################################
+# 数据卷
+##################################################
+volumes:
+  mysql_data:
+  postgres_data:
+  mariadb_data:
+  sqlserver_data:
+  oracle_data:
+  tidb_data:
+  redis_data:
+
+##################################################
+# 网络
+##################################################
+networks:
+  onela-network:
+    driver: bridge

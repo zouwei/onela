@@ -1,5 +1,15 @@
 import type { FieldConfig, KeywordItem, QueryResult, UpdateResult, DeleteResult, QueryParams, UpdateParams, UpdateFieldItem , UpdateCaseItem, UpdateCaseField } from '../types/onela.js';
 
+/**
+ * 校验标识符（列名），防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
 // /**
 //  * 通用模块 - 命令行参数处理（MySQL 版）
 //  * author: joey
@@ -101,7 +111,7 @@ _self.parameters = [];
 
   // === SELECT 字段 ===
   if (paras.select && Array.isArray(paras.select)) {
-    _self.select = paras.select.length === 0 ? 't.*' : paras.select.join(',');
+    _self.select = paras.select.length === 0 ? 't.*' : paras.select.map(f => validateIdentifier(f)).join(',');
   } else {
     _self.select = 't.*';
   }
@@ -113,7 +123,7 @@ _self.parameters = [];
     if (!item || item.value === '' || item.value === undefined || item.value === null) continue;
 
     const logic = item.logic || 'and';
-    const key = item.key;
+    const key = validateIdentifier(item.key);
     const operator = item.operator || '=';
 
     _self.where += ` ${logic} ${key} `;
@@ -156,7 +166,10 @@ _self.parameters = [];
         break;
 
       case 'is':
-        _self.where += `is ${item.value}`;
+        if (item.value !== null && !(typeof item.value === 'string' && item.value.toUpperCase() === 'NULL')) {
+          throw new Error('IS operator only supports NULL value');
+        }
+        _self.where += 'is NULL';
         break;
 
       default:
@@ -166,14 +179,14 @@ _self.parameters = [];
     }
   }
 
-  
+
   // === ORDER BY ===
   if (paras.orderBy && typeof paras.orderBy === 'object') {
     const parts: string[] = [];
     for (const field in paras.orderBy) {
       const dir = paras.orderBy[field];
       if (dir === 'ASC' || dir === 'DESC') {
-        parts.push(`${field} ${dir}`);
+        parts.push(`${validateIdentifier(field)} ${dir}`);
       }
     }
     if (parts.length > 0) {
@@ -208,7 +221,9 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
 
     // CASE WHEN 更新
     if ('case_field' in updateItem && 'case_item' in updateItem) {
-      const { key, case_field, case_item } = updateItem as UpdateCaseField;
+      const { key: rawKey, case_field: rawCaseField, case_item } = updateItem as UpdateCaseField;
+      const key = validateIdentifier(rawKey);
+      const case_field = validateIdentifier(rawCaseField);
       if (!Array.isArray(case_item) || case_item.length === 0) continue;
 
       const caseParts: string[] = [`${key}= (CASE ${case_field}`];
@@ -242,23 +257,24 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
     // 普通字段更新
     else {
       const item = updateItem as UpdateFieldItem;
+      const safeKey = validateIdentifier(item.key);
       const op = item.operator || 'replace';
 
       switch (op) {
         case 'replace':
-          _self.set.push(`${item.key}=?`);
+          _self.set.push(`${safeKey}=?`);
           _self.parameters.push(item.value);
           break;
         case 'plus':
-          _self.set.push(`${item.key}=${item.key} + ?`);
+          _self.set.push(`${safeKey}=${safeKey} + ?`);
           _self.parameters.push(item.value);
           break;
         case 'reduce':
-          _self.set.push(`${item.key}=${item.key} - ?`);
+          _self.set.push(`${safeKey}=${safeKey} - ?`);
           _self.parameters.push(item.value);
           break;
         default:
-          _self.set.push(`${item.key}=?`);
+          _self.set.push(`${safeKey}=?`);
           _self.parameters.push(item.value);
           break;
       }
@@ -273,7 +289,7 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
     if (!item || item.value === '' || item.value === undefined || item.value === null) continue;
 
     const logic = item.logic || 'and';
-    const key = item.key;
+    const key = validateIdentifier(item.key);
     const operator = item.operator || '=';
 
     let sql = ` ${logic} ${key} `;
@@ -345,7 +361,7 @@ const getDeleteParameters = function (paras: { keyword?: KeywordItem[]; where?: 
     if (!item || item.value === '' || item.value === undefined || item.value === null) continue;
 
     const logic = item.logic || 'and';
-    const key = item.key;
+    const key = validateIdentifier(item.key);
     const operator = item.operator || '=';
 
     let sql = ` ${logic} ${key} `;
