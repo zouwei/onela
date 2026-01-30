@@ -111,7 +111,7 @@ _self.parameters = [];
 
   // === SELECT 字段 ===
   if (paras.select && Array.isArray(paras.select)) {
-    _self.select = paras.select.length === 0 ? 't.*' : paras.select.join(',');
+    _self.select = paras.select.length === 0 ? 't.*' : paras.select.map(f => validateIdentifier(f)).join(',');
   } else {
     _self.select = 't.*';
   }
@@ -166,7 +166,10 @@ _self.parameters = [];
         break;
 
       case 'is':
-        _self.where += `is ${item.value}`;
+        if (item.value !== null && !(typeof item.value === 'string' && item.value.toUpperCase() === 'NULL')) {
+          throw new Error('IS operator only supports NULL value');
+        }
+        _self.where += 'is NULL';
         break;
 
       default:

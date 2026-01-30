@@ -174,10 +174,11 @@ export class SQLBuilder {
         case '>=':
         case '<=':
           if (item.format) {
-            // format 模式：值必须为数字或安全函数调用，防止注入
+            // @deprecated format 模式即将移除，请改用参数化查询
+            // format 模式：值必须为纯数字或安全标识符，严格限制防止注入
             const val = String(item.value);
-            if (!/^[a-zA-Z0-9_(). +\-*/]+$/.test(val)) {
-              throw new Error(`Unsafe format value: "${val}"`);
+            if (!/^[a-zA-Z0-9_.]+$/.test(val)) {
+              throw new Error(`Unsafe format value: "${val}". Only alphanumeric, underscore, and dot characters are allowed.`);
             }
             sql = `${key} ${operator} ${val}`;
           } else {
@@ -212,13 +213,17 @@ export class SQLBuilder {
           params.push(`%${item.value}%`);
           break;
 
-        case 'is':
-          sql = `${key} IS ${item.value}`;
+        case 'is': {
+          const isVal = item.value === null || (typeof item.value === 'string' && item.value.toUpperCase() === 'NULL') ? 'NULL' : (() => { throw new Error('IS operator only supports NULL value'); })();
+          sql = `${key} IS ${isVal}`;
           break;
+        }
 
-        case 'is not':
-          sql = `${key} IS NOT ${item.value}`;
+        case 'is not': {
+          const isNotVal = item.value === null || (typeof item.value === 'string' && item.value.toUpperCase() === 'NULL') ? 'NULL' : (() => { throw new Error('IS NOT operator only supports NULL value'); })();
+          sql = `${key} IS NOT ${isNotVal}`;
           break;
+        }
 
         case 'between':
           if (Array.isArray(item.value) && item.value.length >= 2) {

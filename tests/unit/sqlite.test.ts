@@ -482,7 +482,7 @@ describe('Grammar SQLite', () => {
         configs,
         where: [{ key: 'title', operator: 'is', value: 'null', logic: 'and' }],
       } as any);
-      expect(result.where).toContain('is null');
+      expect(result.where).toContain('is NULL');
       expect(result.parameters).toEqual([]); // IS does not push params
     });
 

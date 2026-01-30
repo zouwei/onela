@@ -29,7 +29,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
 
   // === SELECT 字段 ===
   if (paras.select && Array.isArray(paras.select)) {
-    _self.select = paras.select.length === 0 ? 't.*' : paras.select.join(',');
+    _self.select = paras.select.length === 0 ? 't.*' : paras.select.map(f => validateIdentifier(f)).join(',');
   } else {
     _self.select = 't.*';
   }
@@ -69,12 +69,12 @@ const getParameters = function (paras: QueryParams): QueryResult {
       case '>=':
       case '<=':
         if (item.format) {
-          // format 模式：值必须为数字或安全函数调用，防止注入
+          // @deprecated format 模式即将移除，请改用参数化查询
+          // 严格限制：仅允许字母、数字、下划线、点号
           const val = String(item.value);
-          if (!/^[a-zA-Z0-9_(). +\-*/]+$/.test(val)) {
-            throw new Error(`Unsafe format value: "${val}"`);
+          if (!/^[a-zA-Z0-9_.]+$/.test(val)) {
+            throw new Error(`Unsafe format value: "${val}". Only alphanumeric, underscore, and dot characters are allowed.`);
           }
-          index--; // 不占用参数位
           _self.where += `${operator} ${val}`;
         } else {
           index++;
@@ -86,12 +86,11 @@ const getParameters = function (paras: QueryParams): QueryResult {
       case 'in':
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
-          index--; // 预留
           const placeholders: string[] = [];
-          for (const _ of item.value) {
+          for (let i = 0; i < item.value.length; i++) {
             index++;
             placeholders.push(`$${index}`);
-            _self.parameters.push(item.value[_]);
+            _self.parameters.push(item.value[i]);
           }
           _self.where += `${operator} (${placeholders.join(', ')})`;
         } else {
@@ -118,7 +117,10 @@ const getParameters = function (paras: QueryParams): QueryResult {
         break;
 
       case 'is':
-        _self.where += `is ${item.value}`;
+        if (item.value !== null && !(typeof item.value === 'string' && item.value.toUpperCase() === 'NULL')) {
+          throw new Error('IS operator only supports NULL value');
+        }
+        _self.where += 'is NULL';
         break;
 
       default:
@@ -129,7 +131,7 @@ const getParameters = function (paras: QueryParams): QueryResult {
     }
   }
 
-  
+
   // === GROUP BY ===
   if (paras.groupBy && Array.isArray(paras.groupBy) && paras.groupBy.length > 0) {
     _self.groupBy = ` GROUP BY ${paras.groupBy.map(f => validateIdentifier(f)).join(', ')} `;
@@ -270,12 +272,11 @@ const getUpdateParameters = function (paras: UpdateParams): UpdateResult {
       case 'in':
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
-          // index--;
           const placeholders: string[] = [];
-          for (const _ in item.value) {
+          for (let i = 0; i < item.value.length; i++) {
             index++;
             placeholders.push(`$${index}`);
-            _self.parameters.push(item.value[_]);
+            _self.parameters.push(item.value[i]);
           }
           sql += `${operator} (${placeholders.join(', ')})`;
         } else {
@@ -353,12 +354,11 @@ const getDeleteParameters = function (paras: { keyword?: KeywordItem[]; where?: 
       case 'in':
       case 'not in':
         if (Array.isArray(item.value) && item.value.length > 0) {
-          index--;
           const placeholders: string[] = [];
-          for (const _ of item.value) {
+          for (let i = 0; i < item.value.length; i++) {
             index++;
             placeholders.push(`$${index}`);
-            _self.parameters.push(item.value[_]);
+            _self.parameters.push(item.value[i]);
           }
           sql += `${operator} (${placeholders.join(', ')})`;
         } else {

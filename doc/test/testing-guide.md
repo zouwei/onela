@@ -49,12 +49,15 @@ docker compose up -d
 
 | 服务 | 端口 | 用户名 | 密码 | 数据库 |
 |------|------|--------|------|--------|
-| MySQL | 3306 | test | test123 | onela_test |
-| PostgreSQL | 5432 | test | test123 | onela_test |
-| MariaDB | 3307 | test | test123 | onela_test |
-| SQL Server | 1433 | sa | Test@123456 | onela_test |
-| Oracle XE | 1521 | test | test123 | XE |
-| TiDB | 4000 | root | (无) | onela_test |
+| MySQL | 3306 | `$DB_USER` | `$DB_PASSWORD` | onela_test |
+| PostgreSQL | 5432 | `$DB_USER` | `$DB_PASSWORD` | onela_test |
+| MariaDB | 3307 | `$DB_USER` | `$DB_PASSWORD` | onela_test |
+| SQL Server | 1433 | `$DB_USER` | `$DB_PASSWORD` | onela_test |
+| Oracle XE | 1521 | `$DB_USER` | `$DB_PASSWORD` | XE |
+| TiDB | 4000 | `$DB_USER` | (无) | onela_test |
+
+> **注意**: 请通过环境变量设置数据库凭据，不要在代码或文档中硬编码密码。
+> 参考 `.env.example` 文件配置测试环境变量。
 
 ### 检查数据库状态
 
@@ -133,10 +136,10 @@ describe('Database Integration', () => {
       engine: 'test',
       type: 'mysql',
       value: {
-        host: 'localhost',
-        user: 'test',
-        password: 'test123',
-        database: 'onela_test',
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'test',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'onela_test',
       },
     }]);
   });

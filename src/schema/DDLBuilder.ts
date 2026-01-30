@@ -83,6 +83,16 @@ export type AlterAction =
   | { type: 'renameTable'; newName: string };
 
 /**
+ * 校验 SQL 标识符（表名、列名等），防止 SQL 注入
+ */
+function validateIdentifier(name: string): string {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+    throw new Error(`Invalid SQL identifier: "${name}"`);
+  }
+  return name;
+}
+
+/**
  * DDL 构建器
  */
 export class DDLBuilder {
@@ -98,12 +108,13 @@ export class DDLBuilder {
    * 构建 CREATE TABLE 语句
    */
   buildCreateTable(definition: TableDefinition): string {
+    const safeTableName = validateIdentifier(definition.tableName);
     const columns = definition.columns.map((col) => this.buildColumnDef(col));
 
     // 提取主键
     const primaryKeys = definition.columns
       .filter((col) => col.primary)
-      .map((col) => col.name);
+      .map((col) => validateIdentifier(col.name));
 
     if (primaryKeys.length > 0) {
       columns.push(`PRIMARY KEY (${primaryKeys.join(', ')})`);
@@ -112,17 +123,32 @@ export class DDLBuilder {
     // 唯一约束
     const uniqueColumns = definition.columns
       .filter((col) => col.unique && !col.primary)
-      .map((col) => `UNIQUE (${col.name})`);
+      .map((col) => `UNIQUE (${validateIdentifier(col.name)})`);
     columns.push(...uniqueColumns);
 
     const ifNotExists = definition.ifNotExists ? 'IF NOT EXISTS ' : '';
-    let sql = `CREATE TABLE ${ifNotExists}${definition.tableName} (\n  ${columns.join(',\n  ')}\n)`;
+    let sql = `CREATE TABLE ${ifNotExists}${safeTableName} (\n  ${columns.join(',\n  ')}\n)`;
 
     // MySQL/MariaDB 特有选项
     if (['mysql', 'mariadb', 'tidb', 'oceanbase', 'polardb'].includes(this.dbType)) {
-      if (definition.engine) sql += ` ENGINE=${definition.engine}`;
-      if (definition.charset) sql += ` DEFAULT CHARSET=${definition.charset}`;
-      if (definition.collation) sql += ` COLLATE=${definition.collation}`;
+      if (definition.engine) {
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(definition.engine)) {
+          throw new Error(`Invalid engine name: "${definition.engine}"`);
+        }
+        sql += ` ENGINE=${definition.engine}`;
+      }
+      if (definition.charset) {
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(definition.charset)) {
+          throw new Error(`Invalid charset name: "${definition.charset}"`);
+        }
+        sql += ` DEFAULT CHARSET=${definition.charset}`;
+      }
+      if (definition.collation) {
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(definition.collation)) {
+          throw new Error(`Invalid collation name: "${definition.collation}"`);
+        }
+        sql += ` COLLATE=${definition.collation}`;
+      }
       if (definition.comment) sql += ` COMMENT='${definition.comment.replace(/'/g, "''")}'`;
     }
 
@@ -133,7 +159,7 @@ export class DDLBuilder {
    * 构建列定义
    */
   private buildColumnDef(col: ColumnDefinition): string {
-    const parts: string[] = [col.name];
+    const parts: string[] = [validateIdentifier(col.name)];
 
     // 类型映射
     parts.push(this.mapColumnType(col));
@@ -268,8 +294,9 @@ export class DDLBuilder {
    * 构建 DROP TABLE 语句
    */
   buildDropTable(tableName: string, ifExists: boolean = true): string {
+    const safeTableName = validateIdentifier(tableName);
     const ifExistsClause = ifExists ? 'IF EXISTS ' : '';
-    return `DROP TABLE ${ifExistsClause}${tableName};`;
+    return `DROP TABLE ${ifExistsClause}${safeTableName};`;
   }
 
   /**
@@ -283,47 +310,52 @@ export class DDLBuilder {
    * 构建单个 ALTER TABLE 操作
    */
   private buildAlterAction(tableName: string, action: AlterAction): string {
+    const safeTable = validateIdentifier(tableName);
     switch (action.type) {
       case 'addColumn':
-        return `ALTER TABLE ${tableName} ADD COLUMN ${this.buildColumnDef(action.column)};`;
+        return `ALTER TABLE ${safeTable} ADD COLUMN ${this.buildColumnDef(action.column)};`;
 
       case 'dropColumn':
-        return `ALTER TABLE ${tableName} DROP COLUMN ${action.columnName};`;
+        return `ALTER TABLE ${safeTable} DROP COLUMN ${validateIdentifier(action.columnName)};`;
 
       case 'modifyColumn':
         if (['mysql', 'mariadb', 'tidb'].includes(this.dbType)) {
-          return `ALTER TABLE ${tableName} MODIFY COLUMN ${this.buildColumnDef(action.column)};`;
+          return `ALTER TABLE ${safeTable} MODIFY COLUMN ${this.buildColumnDef(action.column)};`;
         } else if (this.dbType === 'postgresql') {
-          return `ALTER TABLE ${tableName} ALTER COLUMN ${action.column.name} TYPE ${this.mapColumnType(action.column)};`;
+          return `ALTER TABLE ${safeTable} ALTER COLUMN ${validateIdentifier(action.column.name)} TYPE ${this.mapColumnType(action.column)};`;
         } else if (this.dbType === 'sqlserver') {
-          return `ALTER TABLE ${tableName} ALTER COLUMN ${this.buildColumnDef(action.column)};`;
+          return `ALTER TABLE ${safeTable} ALTER COLUMN ${this.buildColumnDef(action.column)};`;
         }
-        return `ALTER TABLE ${tableName} MODIFY ${this.buildColumnDef(action.column)};`;
+        return `ALTER TABLE ${safeTable} MODIFY ${this.buildColumnDef(action.column)};`;
 
-      case 'renameColumn':
+      case 'renameColumn': {
+        const safeOld = validateIdentifier(action.oldName);
+        const safeNew = validateIdentifier(action.newName);
         if (['mysql', 'mariadb'].includes(this.dbType)) {
-          return `ALTER TABLE ${tableName} RENAME COLUMN ${action.oldName} TO ${action.newName};`;
+          return `ALTER TABLE ${safeTable} RENAME COLUMN ${safeOld} TO ${safeNew};`;
         } else if (this.dbType === 'sqlserver') {
-          return `EXEC sp_rename '${tableName}.${action.oldName}', '${action.newName}', 'COLUMN';`;
+          return `EXEC sp_rename '${safeTable}.${safeOld}', '${safeNew}', 'COLUMN';`;
         }
-        return `ALTER TABLE ${tableName} RENAME COLUMN ${action.oldName} TO ${action.newName};`;
+        return `ALTER TABLE ${safeTable} RENAME COLUMN ${safeOld} TO ${safeNew};`;
+      }
 
       case 'addIndex': {
         const unique = action.index.unique ? 'UNIQUE ' : '';
-        return `CREATE ${unique}INDEX ${action.index.name} ON ${tableName} (${action.index.columns.join(', ')});`;
+        const safeCols = action.index.columns.map(c => validateIdentifier(c));
+        return `CREATE ${unique}INDEX ${validateIdentifier(action.index.name)} ON ${safeTable} (${safeCols.join(', ')});`;
       }
 
       case 'dropIndex':
         if (['mysql', 'mariadb', 'tidb'].includes(this.dbType)) {
-          return `DROP INDEX ${action.indexName} ON ${tableName};`;
+          return `DROP INDEX ${validateIdentifier(action.indexName)} ON ${safeTable};`;
         }
-        return `DROP INDEX ${action.indexName};`;
+        return `DROP INDEX ${validateIdentifier(action.indexName)};`;
 
       case 'renameTable':
         if (this.dbType === 'sqlserver') {
-          return `EXEC sp_rename '${tableName}', '${action.newName}';`;
+          return `EXEC sp_rename '${safeTable}', '${validateIdentifier(action.newName)}';`;
         }
-        return `ALTER TABLE ${tableName} RENAME TO ${action.newName};`;
+        return `ALTER TABLE ${safeTable} RENAME TO ${validateIdentifier(action.newName)};`;
 
       default:
         throw new Error(`Unknown alter action type`);
@@ -334,8 +366,11 @@ export class DDLBuilder {
    * 构建 CREATE INDEX 语句
    */
   buildCreateIndex(tableName: string, index: IndexDefinition): string {
+    const safeTable = validateIdentifier(tableName);
+    const safeName = validateIdentifier(index.name);
+    const safeCols = index.columns.map(c => validateIdentifier(c));
     const unique = index.unique ? 'UNIQUE ' : '';
-    return `CREATE ${unique}INDEX ${index.name} ON ${tableName} (${index.columns.join(', ')});`;
+    return `CREATE ${unique}INDEX ${safeName} ON ${safeTable} (${safeCols.join(', ')});`;
   }
 
   /**

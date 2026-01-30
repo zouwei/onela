@@ -28,7 +28,7 @@ export interface SubqueryDefinition {
  * 校验标识符，防止 SQL 注入
  */
 function validateIdentifier(name: string): string {
-  if (!/^[a-zA-Z0-9_*][a-zA-Z0-9_.*]*$/.test(name)) {
+  if (!/^[a-zA-Z_*][a-zA-Z0-9_.*]*$/.test(name)) {
     throw new Error(`Invalid SQL identifier: "${name}"`);
   }
   return name;

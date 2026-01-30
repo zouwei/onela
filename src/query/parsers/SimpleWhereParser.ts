@@ -192,7 +192,9 @@ export function parseSimpleWhere(
           result.push({ key, operator: 'regexp', value: opValue, logic });
           break;
         case '$raw':
-          result.push({ key, operator: '=', value: opValue, logic, format: true });
+          // Security: $raw is deprecated and disabled to prevent SQL injection.
+          // Use parameterized operators instead.
+          throw new Error('$raw operator is disabled for security reasons. Use parameterized operators instead.');
           break;
       }
     }

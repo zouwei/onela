@@ -52,15 +52,28 @@ export interface LogHandler {
 
 /**
  * 日志配置
+ *
+ * **安全提示**: 生产环境建议设置 logSQL: false, logParams: false，
+ * 避免将 SQL 语句和参数写入日志，防止敏感数据泄露。
+ * 推荐生产环境配置:
+ * ```
+ * { level: LogLevel.WARN, logSQL: false, logParams: false }
+ * ```
  */
 export interface LoggerConfig {
   /** 最小日志级别 */
   level: LogLevel;
   /** 是否启用 */
   enabled: boolean;
-  /** 是否记录 SQL */
+  /**
+   * 是否记录 SQL
+   * **安全提示**: 生产环境建议设置为 false，防止 SQL 语句泄露到日志
+   */
   logSQL: boolean;
-  /** 是否记录参数 */
+  /**
+   * 是否记录参数
+   * 默认 false（安全考虑）。启用后参数会被记录到日志中，注意敏感数据风险。
+   */
   logParams: boolean;
   /** 是否记录执行时间 */
   logDuration: boolean;

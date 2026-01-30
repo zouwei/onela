@@ -23,6 +23,8 @@ interface SQLServerConfig {
   database: string;
   port?: number;
   encrypt?: boolean;
+  /** 是否信任服务器证书。生产环境建议设为 false 并配置正确的 CA 证书。默认 false。 */
+  trustServerCertificate?: boolean;
 }
 
 /**
@@ -83,7 +85,7 @@ export class SQLServerActionManagerV2 extends AbstractActionManager {
         encrypt: config.encrypt ?? false,
         port: config.port ?? 1433,
         database: config.database,
-        trustServerCertificate: true,
+        trustServerCertificate: config.trustServerCertificate ?? false,
       },
     };
   }

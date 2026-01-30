@@ -2,34 +2,31 @@
  * 数据库集成测试
  * 测试 Onela ORM 与真实数据库的交互
  *
- * 测试环境:
- * - MySQL: 192.168.3.56:3306
- * - PostgreSQL: 192.168.3.56:5432
- * - MariaDB: 192.168.3.56:3307
+ * 测试环境配置通过环境变量传入，参考 .env.example
  */
 
-// 测试配置
+// 测试配置（从环境变量读取，提供默认值用于本地开发）
 const TEST_CONFIG = {
   mysql: {
-    host: '192.168.3.56',
-    port: 3306,
-    user: 'test',
-    password: 'test123',
-    database: 'onela_test',
+    host: process.env.MYSQL_HOST || '127.0.0.1',
+    port: parseInt(process.env.MYSQL_PORT || '3306', 10),
+    user: process.env.MYSQL_USER || 'test',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'onela_test',
   },
   postgresql: {
-    host: '192.168.3.56',
-    port: 5432,
-    user: 'test',
-    password: 'test123',
-    database: 'onela_test',
+    host: process.env.PG_HOST || '127.0.0.1',
+    port: parseInt(process.env.PG_PORT || '5432', 10),
+    user: process.env.PG_USER || 'test',
+    password: process.env.PG_PASSWORD || '',
+    database: process.env.PG_DATABASE || 'onela_test',
   },
   mariadb: {
-    host: '192.168.3.56',
-    port: 3307,
-    user: 'test',
-    password: 'test123',
-    database: 'onela_test',
+    host: process.env.MARIADB_HOST || '127.0.0.1',
+    port: parseInt(process.env.MARIADB_PORT || '3307', 10),
+    user: process.env.MARIADB_USER || 'test',
+    password: process.env.MARIADB_PASSWORD || '',
+    database: process.env.MARIADB_DATABASE || 'onela_test',
   },
 };
 

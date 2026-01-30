@@ -50,7 +50,11 @@ export class MigrationRunner {
   ) {
     this.dbType = dbType.toLowerCase();
     this.executor = executor;
-    this.historyTable = config.tableName || '_onela_migrations';
+    const tableName = config.tableName || '_onela_migrations';
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      throw new Error(`Invalid migration history table name: "${tableName}"`);
+    }
+    this.historyTable = tableName;
   }
 
   /**

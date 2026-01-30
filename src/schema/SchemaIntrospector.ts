@@ -168,6 +168,10 @@ export class SchemaIntrospector {
         break;
 
       case 'sqlite': case 'sqlite3':
+        // PRAGMA doesn't support parameterized queries, validate identifier to prevent injection
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+          throw new Error(`Invalid table name: "${tableName}"`);
+        }
         sql = `PRAGMA table_info("${tableName}")`;
         break;
 
